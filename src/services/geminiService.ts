@@ -4,11 +4,25 @@
 */
 
 import { GoogleGenAI, Modality, Type } from "@google/genai";
-import { BusinessDetails, RoadmapStep, StrategyFocus } from "../types";
+import { BusinessDetails, StrategyFocus } from "../types";
 import { base64ToArrayBuffer, pcmToWav } from "./audioUtils";
 
-// GUIDELINE: Always use process.env.API_KEY directly when initializing.
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+let ai: GoogleGenAI | null = null;
+
+export const setGeminiApiKey = (apiKey: string) => {
+    const trimmed = apiKey.trim();
+    if (!trimmed) {
+        throw new Error("Gemini API key is required before making requests.");
+    }
+    ai = new GoogleGenAI({ apiKey: trimmed });
+};
+
+const requireClient = (): GoogleGenAI => {
+    if (!ai) {
+        throw new Error("Gemini client is not configured. Set the API key first.");
+    }
+    return ai;
+};
 
 const ESPACIOS_KNOWLEDGE_BASE = `
 Espacios is a done-for-you growth and automation agency.
@@ -50,6 +64,7 @@ const getFocusInstruction = (focus: StrategyFocus): string => {
 export const generateGrowthRoadmap = async (
     details: BusinessDetails
 ): Promise<{ executiveSummary: string; stepOutlines: { title: string; goal: string }[] }> => {
+    const ai = requireClient();
     const totalSteps = getStepCount(details.auditDepth);
     const focusInstruction = getFocusInstruction(details.strategyFocus);
 
@@ -117,6 +132,7 @@ export const generateStepContent = async (
     stepGoal: string,
     previousContext: string = ""
 ): Promise<string> => {
+    const ai = requireClient();
     const focusInstruction = getFocusInstruction(details.strategyFocus);
     
     const prompt = `
@@ -147,6 +163,7 @@ export const generateStepContent = async (
  * Transforms text into spoken audio using Gemini 2.5 Flash TTS.
  */
 export const generateBriefingAudio = async (text: string, audioContext: AudioContext): Promise<AudioBuffer> => {
+  const ai = requireClient();
   const response = await ai.models.generateContent({
     model: 'gemini-2.5-flash-preview-tts',
     contents: [{ parts: [{ text: text }] }],

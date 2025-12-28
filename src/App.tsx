@@ -3,48 +3,43 @@
  * SPDX-License-Identifier: Apache-2.0
 */
 
-import React, { useState, useEffect, useRef } from 'react';
-import { TrendingUp, Loader2, RefreshCw, ChevronLeft } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { TrendingUp, Loader2, ChevronLeft } from 'lucide-react';
 import StrategyPlanner from './components/StrategyPlanner';
 import RoadmapViewer from './components/RoadmapViewer';
 import { AppState, BusinessDetails, GrowthRoadmap } from './types';
-import { generateGrowthRoadmap, generateStepContent, generateBriefingAudio, getStepCount } from './services/geminiService';
+import { generateGrowthRoadmap, generateStepContent, generateBriefingAudio, setGeminiApiKey } from './services/geminiService';
 
 function App() {
   const [appState, setAppState] = useState<AppState>(AppState.PLANNING);
   const [details, setDetails] = useState<BusinessDetails | null>(null);
   const [roadmap, setRoadmap] = useState<GrowthRoadmap | null>(null);
   const [currentPlayingIndex, setCurrentPlayingIndex] = useState(0);
-  const [isGeneratingNext, setIsGeneratingNext] = useState(false);
-  const generatingRef = useRef(false);
-
-  // Buffer Engine
-  useEffect(() => {
-    if (appState === AppState.READY_TO_VIEW && roadmap && details) {
-        const totalTarget = getStepCount(details.auditDepth);
-        if (roadmap.steps.length < totalTarget && roadmap.steps.length < currentPlayingIndex + 3 && !generatingRef.current) {
-            generateNextPhase(roadmap.steps.length + 1);
-        }
-    }
-  }, [appState, roadmap, currentPlayingIndex, details]);
-
-  const generateNextPhase = async (index: number) => {
-    if (!details || !roadmap || generatingRef.current) return;
+  const [apiKey, setApiKeyState] = useState<string>(() => {
     try {
-        generatingRef.current = true;
-        setIsGeneratingNext(true);
-        
-        const totalTarget = getStepCount(details.auditDepth);
-        const blueprint = roadmap.steps.find(s => false); // Just a placeholder logic
-        // We actually need the original outlines from generateGrowthRoadmap...
-        // Let's store them in the roadmap object.
-    } finally {
-        generatingRef.current = false;
-        setIsGeneratingNext(false);
+        return localStorage.getItem('espacios_gemini_api_key') || '';
+    } catch {
+        return '';
     }
-  };
+  });
+  const [apiError, setApiError] = useState<string | null>(null);
+
+  useEffect(() => {
+    try {
+        localStorage.setItem('espacios_gemini_api_key', apiKey);
+    } catch {
+        // Ignore persistence failures (e.g. private mode)
+    }
+  }, [apiKey]);
 
   const startAnalysis = async (input: BusinessDetails) => {
+    if (!apiKey.trim()) {
+        setApiError('Add your Gemini API key to generate a roadmap.');
+        return;
+    }
+
+    setApiError(null);
+    setGeminiApiKey(apiKey);
     setDetails(input);
     setAppState(AppState.GENERATING_ROADMAP);
     
@@ -64,7 +59,7 @@ function App() {
             executiveSummary,
             steps: [{ index: 1, title: first.title, text, audioBuffer: audio }]
         };
-        
+
         setRoadmap(initialRoadmap);
         setAppState(AppState.READY_TO_VIEW);
 
@@ -73,6 +68,7 @@ function App() {
 
     } catch (e) {
         console.error(e);
+        alert('Failed to generate roadmap. Please check your API key and try again.');
         setAppState(AppState.PLANNING);
     }
   };
@@ -128,7 +124,13 @@ function App() {
                           We don’t sell tools. We run systems. Use our AI Growth Architect to map your business transformation.
                       </p>
                   </div>
-                  <StrategyPlanner onPlanCreated={startAnalysis} appState={appState} />
+                  <StrategyPlanner
+                    onPlanCreated={startAnalysis}
+                    appState={appState}
+                    apiKey={apiKey}
+                    onApiKeyChange={setApiKeyState}
+                    apiKeyError={apiError}
+                  />
               </div>
           )}
 
