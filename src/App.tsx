@@ -98,36 +98,32 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-editorial-100 text-editorial-900 selection:bg-stone-200">
-      <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-6 flex items-center justify-between pointer-events-none">
-          <div className="flex items-center gap-3 font-serif text-2xl font-bold tracking-tight pointer-events-auto cursor-pointer" onClick={() => setAppState(AppState.PLANNING)}>
-              <div className="bg-editorial-900 text-white p-2 rounded-xl shadow-lg">
-                <TrendingUp size={24} />
-              </div>
-              <span className="hidden sm:inline">Espacios <span className="text-stone-400 italic">Growth</span></span>
-          </div>
-          
-          {appState === AppState.READY_TO_VIEW && (
-              <button 
-                onClick={() => setAppState(AppState.PLANNING)}
-                className="pointer-events-auto flex items-center gap-2 bg-white/80 backdrop-blur-md px-6 py-3 rounded-full border border-stone-200 text-xs font-bold uppercase tracking-widest hover:bg-white transition-all shadow-sm"
-              >
-                <ChevronLeft size={16} /> New Analysis
-              </button>
-          )}
-      </nav>
+    <div className="min-h-screen text-editorial-900 selection:bg-stone-200">
+      {/* Section Header */}
+      <div className="max-w-7xl mx-auto px-6 py-12 text-center">
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-stone-200 bg-white/80 backdrop-blur-sm mb-6">
+          <TrendingUp size={18} className="text-editorial-900" />
+          <span className="text-xs font-bold uppercase tracking-widest text-stone-600">AI Growth Architect</span>
+        </div>
+        <h2 className="text-4xl md:text-6xl font-serif leading-tight tracking-tighter mb-4">
+          Map Your Growth <span className="italic text-stone-400">Transformation</span>
+        </h2>
+        <p className="text-lg md:text-xl text-stone-500 font-light leading-relaxed max-w-2xl mx-auto">
+          Get a personalized, multi-step roadmap with AI-generated strategic briefings tailored to your business.
+        </p>
+        {appState === AppState.READY_TO_VIEW && (
+          <button
+            onClick={() => setAppState(AppState.PLANNING)}
+            className="mt-6 inline-flex items-center gap-2 bg-editorial-900 text-white px-6 py-3 rounded-full text-sm font-bold uppercase tracking-widest hover:bg-stone-800 transition-all shadow-lg"
+          >
+            <ChevronLeft size={16} /> Start New Analysis
+          </button>
+        )}
+      </div>
 
-      <main className="max-w-7xl mx-auto px-6 pt-32 pb-32">
+      <main className="max-w-7xl mx-auto px-6 pb-32">
           {appState === AppState.PLANNING && (
-              <div className="space-y-16">
-                  <div className="max-w-4xl">
-                      <h1 className="text-6xl md:text-8xl font-serif leading-[0.95] tracking-tighter mb-8">
-                          Turn attention into <span className="italic text-stone-400">revenue.</span>
-                      </h1>
-                      <p className="text-xl md:text-2xl text-stone-500 font-light leading-relaxed max-w-2xl">
-                          We don’t sell tools. We run systems. Use our AI Growth Architect to map your business transformation.
-                      </p>
-                  </div>
+              <div className="space-y-8">
                   <StrategyPlanner onPlanCreated={startAnalysis} appState={appState} />
               </div>
           )}
@@ -155,38 +151,6 @@ function App() {
               />
           )}
       </main>
-
-      <footer className="border-t border-stone-200 bg-white/50 backdrop-blur-sm py-20 px-6 mt-32">
-          <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-16">
-              <div className="space-y-6">
-                  <div className="flex items-center gap-2 font-serif text-2xl font-bold">
-                    <TrendingUp size={24} /> Espacios
-                  </div>
-                  <p className="text-stone-600 leading-relaxed max-w-md font-light">
-                      A done-for-you growth agency. We plan, execute, and optimize the systems that generate leads, manage conversations, and convert demand into revenue.
-                  </p>
-              </div>
-              <div className="grid grid-cols-2 gap-8 text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400">
-                  <div className="space-y-4">
-                      <h4 className="text-editorial-900">Services</h4>
-                      <ul className="space-y-2 font-medium tracking-normal text-stone-500 normal-case">
-                          <li>Lead Gen & Paid Ads</li>
-                          <li>WhatsApp Sales Systems</li>
-                          <li>AI-Powered Automation</li>
-                          <li>CRM Infrastructure</li>
-                      </ul>
-                  </div>
-                  <div className="space-y-4">
-                      <h4 className="text-editorial-900">Contact</h4>
-                      <ul className="space-y-2 font-medium tracking-normal text-stone-500 normal-case">
-                          <li>strategy@espacios.agency</li>
-                          <li>Systems Consultation</li>
-                          <li>Digital Transformation</li>
-                      </ul>
-                  </div>
-              </div>
-          </div>
-      </footer>
     </div>
   );
 }
