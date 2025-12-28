@@ -1,13 +1,22 @@
-<!DOCTYPE html>
-<html lang="en" class="bg-stone-50">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Espacios | Growth & Automation Architect</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Espacios | Growth, Messaging & Automation</title>
+    <meta
+      name="description"
+      content="Espacios is a done-for-you Growth, Messaging & Automation Agency. We design, deploy, and operate systems that convert attention into revenue."
+    />
+    <meta name="theme-color" content="#F9F7F4" />
+
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS CDN for React App -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -40,28 +49,548 @@
             }
         }
     </script>
+
+    <!-- Import Maps for React -->
+    <script type="importmap">
+    {
+      "imports": {
+        "react/": "https://aistudiocdn.com/react@^19.2.0/",
+        "react": "https://aistudiocdn.com/react@^19.2.0",
+        "@google/genai": "https://aistudiocdn.com/@google/genai@^1.28.0",
+        "lucide-react": "https://aistudiocdn.com/lucide-react@^0.552.0",
+        "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+        "path": "https://aistudiocdn.com/path@^0.12.7",
+        "vite": "https://aistudiocdn.com/vite@^7.2.7",
+        "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.2"
+      }
+    }
+    </script>
+
     <style>
-        body { -webkit-font-smoothing: antialiased; }
-        .animate-fade-in { animation: fadeIn 0.8s ease-out forwards; }
+      :root {
+        --bg: #f9f7f4;
+        --card: rgba(255, 255, 255, 0.72);
+        --card-solid: #ffffff;
+        --text: #141414;
+        --muted: #5a5a5a;
+        --muted-2: #7a7a7a;
+        --border: rgba(20, 20, 20, 0.12);
+        --shadow: 0 24px 70px rgba(20, 20, 20, 0.12);
+        --shadow-soft: 0 10px 28px rgba(20, 20, 20, 0.08);
+        --focus: rgba(20, 20, 20, 0.18);
+        --radius-xl: 28px;
+        --radius-lg: 20px;
+        --radius-md: 14px;
+        --max: 1120px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        color: var(--text);
+        background: radial-gradient(900px 380px at 18% 12%, rgba(20, 20, 20, 0.06), transparent 55%),
+          radial-gradient(720px 360px at 80% 16%, rgba(20, 20, 20, 0.05), transparent 60%), var(--bg);
+        font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      a:hover {
+        text-decoration: underline;
+        text-underline-offset: 3px;
+      }
+
+      .wrap {
+        max-width: var(--max);
+        margin: 0 auto;
+        padding: 0 20px;
+      }
+
+      .skip {
+        position: absolute;
+        left: -9999px;
+        top: 8px;
+        z-index: 999;
+        padding: 10px 14px;
+        border-radius: 999px;
+        background: var(--card-solid);
+        border: 1px solid var(--border);
+      }
+
+      .skip:focus {
+        left: 12px;
+        outline: 3px solid var(--focus);
+      }
+
+      header {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        border-bottom: 1px solid var(--border);
+        background: color-mix(in srgb, var(--bg) 86%, white 14%);
+        backdrop-filter: blur(12px);
+      }
+
+      .header-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 14px 0;
+      }
+
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+
+      .mark {
+        width: 38px;
+        height: 38px;
+        border-radius: 14px;
+        background: var(--text);
+        color: white;
+        display: grid;
+        place-items: center;
+        box-shadow: var(--shadow-soft);
+        flex: 0 0 auto;
+      }
+
+      .brand span {
+        font-size: 15px;
+      }
+
+      nav {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+
+      nav a {
+        padding: 8px 10px;
+        border-radius: 999px;
+        font-size: 13px;
+        color: var(--muted);
+        white-space: nowrap;
+      }
+
+      nav a:hover {
+        background: rgba(20, 20, 20, 0.06);
+        color: var(--text);
+        text-decoration: none;
+      }
+
+      nav a.active {
+        background: rgba(20, 20, 20, 0.08);
+        color: var(--text);
+        font-weight: 700;
+      }
+
+      .cta {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 14px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: var(--card);
+        box-shadow: var(--shadow-soft);
+        font-size: 13px;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+
+      .cta:hover {
+        background: var(--card-solid);
+        text-decoration: none;
+      }
+
+      .cta-primary {
+        background: var(--text);
+        color: white;
+        border-color: var(--text);
+      }
+
+      .cta-primary:hover {
+        background: #2a2a2a;
+        border-color: #2a2a2a;
+      }
+
+      main {
+        padding: 34px 0 0;
+      }
+
+      section {
+        scroll-margin-top: 88px;
+        padding: 34px 0 50px;
+      }
+
+      .hero {
+        padding: 34px 0 50px;
+      }
+
+      .kicker {
+        display: inline-flex;
+        gap: 8px;
+        align-items: center;
+        padding: 7px 10px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: var(--card);
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      h1,
+      h2,
+      h3 {
+        font-family: 'DM Serif Display', ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+        letter-spacing: -0.03em;
+      }
+
+      h1 {
+        margin: 16px 0 12px;
+        font-size: clamp(40px, 5vw, 74px);
+        line-height: 0.95;
+      }
+
+      .subhead {
+        max-width: 60ch;
+        font-size: clamp(16px, 2vw, 20px);
+        line-height: 1.6;
+        color: var(--muted);
+        margin: 0 0 22px;
+        font-weight: 450;
+      }
+
+      /* React App Section Styles */
+      #app-section {
+        min-height: 100vh;
+        background: linear-gradient(180deg, var(--bg) 0%, #ffffff 100%);
+        padding: 60px 0;
+      }
+
+      #root {
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+
+      /* Hide React app initially, show when scrolled to */
+      .app-container {
+        opacity: 0;
+        transform: translateY(20px);
+        transition: opacity 0.6s ease, transform 0.6s ease;
+      }
+
+      .app-container.visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      @media (max-width: 880px) {
+        nav {
+          display: none;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+        .app-container {
+          transition: none;
+        }
+      }
     </style>
-<script type="importmap">
-{
-  "imports": {
-    "react/": "https://aistudiocdn.com/react@^19.2.0/",
-    "react": "https://aistudiocdn.com/react@^19.2.0",
-    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.28.0",
-    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.552.0",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-    "path": "https://aistudiocdn.com/path@^0.12.7",
-    "vite": "https://aistudiocdn.com/vite@^7.2.7",
-    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.2"
-  }
-}
-</script>
-<link rel="stylesheet" href="/src/index.css">
-</head>
-<body>
-    <div id="root"></div>
-<script type="module" src="/src/index.tsx"></script>
-</body>
+  </head>
+  <body>
+    <a class="skip" href="#content">Skip to content</a>
+
+    <header>
+      <div class="wrap">
+        <div class="header-row">
+          <a class="brand" href="#top" aria-label="Espacios home">
+            <span class="mark" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" role="img" aria-label="">
+                <path
+                  d="M7 14l4-4 3 3 6-7"
+                  stroke="currentColor"
+                  stroke-width="2.4"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+                <path
+                  d="M20 8V4h-4"
+                  stroke="currentColor"
+                  stroke-width="2.4"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </span>
+            <span>Espacios</span>
+          </a>
+
+          <nav aria-label="Primary">
+            <a href="#what">What It Is</a>
+            <a href="#architect">AI Architect</a>
+            <a href="#capabilities">Capabilities</a>
+            <a href="#delivery">Delivery</a>
+          </nav>
+
+          <a class="cta" href="mailto:strategy@espacios.agency?subject=Espacios%20Systems%20Consultation">
+            strategy@espacios.agency
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <main id="content">
+      <div class="wrap">
+        <!-- Hero Section -->
+        <section class="hero" id="top" aria-label="Hero">
+          <span class="kicker">Growth, Messaging &amp; Automation Systems</span>
+          <h1>Espacios runs the system end‑to‑end.</h1>
+          <p class="subhead">
+            A done‑for‑you Growth, Messaging &amp; Automation Agency. We design, deploy, and operate the systems that
+            generate demand, manage conversations, qualify and nurture leads, and convert attention into revenue.
+          </p>
+
+          <div style="display: flex; gap: 12px; margin-top: 28px; flex-wrap: wrap;">
+            <a class="cta cta-primary" href="#architect" style="padding: 14px 24px; font-size: 14px;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                <line x1="12" y1="22.08" x2="12" y2="12"></line>
+              </svg>
+              Try AI Growth Architect
+            </a>
+            <a class="cta" href="#what">
+              Learn More
+            </a>
+          </div>
+        </section>
+      </div>
+
+      <!-- AI Growth Architect App Section -->
+      <section id="architect" aria-label="AI Growth Architect">
+        <div class="app-container">
+          <div id="root"></div>
+        </div>
+      </section>
+
+      <div class="wrap">
+        <!-- What It Is Section -->
+        <section id="what" style="padding-top: 80px;">
+          <h2 style="font-size: clamp(28px, 3.2vw, 40px); margin: 0 0 20px;">What Espacios Does</h2>
+          <p style="color: var(--muted); line-height: 1.8; max-width: 72ch; font-size: 16px; margin: 0 0 14px;">
+            Espacios is a done‑for‑you Growth, Messaging &amp; Automation Agency. We design, deploy, and operate the systems that:
+          </p>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-top: 28px;">
+            <div style="background: var(--card-solid); border: 1px solid rgba(20, 20, 20, 0.1); border-radius: var(--radius-lg); padding: 18px; box-shadow: var(--shadow-soft);">
+              <span style="display: inline-block; padding: 6px 10px; border-radius: 999px; border: 1px solid rgba(20, 20, 20, 0.12); font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); background: rgba(20, 20, 20, 0.04); margin-bottom: 10px;">Generate demand</span>
+              <p style="margin: 0; color: var(--muted); line-height: 1.75;">Paid media + funnel architecture designed to create high‑intent opportunities.</p>
+            </div>
+            <div style="background: var(--card-solid); border: 1px solid rgba(20, 20, 20, 0.1); border-radius: var(--radius-lg); padding: 18px; box-shadow: var(--shadow-soft);">
+              <span style="display: inline-block; padding: 6px 10px; border-radius: 999px; border: 1px solid rgba(20, 20, 20, 0.12); font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); background: rgba(20, 20, 20, 0.04); margin-bottom: 10px;">Manage conversations</span>
+              <p style="margin: 0; color: var(--muted); line-height: 1.75;">Channel‑agnostic messaging systems that preserve context and reduce lead leakage.</p>
+            </div>
+            <div style="background: var(--card-solid); border: 1px solid rgba(20, 20, 20, 0.1); border-radius: var(--radius-lg); padding: 18px; box-shadow: var(--shadow-soft);">
+              <span style="display: inline-block; padding: 6px 10px; border-radius: 999px; border: 1px solid rgba(20, 20, 20, 0.12); font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); background: rgba(20, 20, 20, 0.04); margin-bottom: 10px;">Qualify &amp; nurture</span>
+              <p style="margin: 0; color: var(--muted); line-height: 1.75;">AI qualification + follow‑ups that keep leads moving without adding headcount.</p>
+            </div>
+            <div style="background: var(--card-solid); border: 1px solid rgba(20, 20, 20, 0.1); border-radius: var(--radius-lg); padding: 18px; box-shadow: var(--shadow-soft);">
+              <span style="display: inline-block; padding: 6px 10px; border-radius: 999px; border: 1px solid rgba(20, 20, 20, 0.12); font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); background: rgba(20, 20, 20, 0.04); margin-bottom: 10px;">Convert into revenue</span>
+              <p style="margin: 0; color: var(--muted); line-height: 1.75;">CRM + pipeline logic that turns attention into booked calls, meetings, and closed deals.</p>
+            </div>
+          </div>
+
+          <div style="margin-top: 32px; padding: 18px; border-radius: var(--radius-xl); border: 1px solid rgba(20, 20, 20, 0.12); background: linear-gradient(180deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.5)); box-shadow: var(--shadow-soft);">
+            <strong style="font-family: 'DM Serif Display', ui-serif, Georgia, Cambria, serif; font-size: 20px;">Espacios does not sell software tools.</strong>
+            <p style="margin: 10px 0 0; color: var(--muted-2); font-size: 13px; line-height: 1.65;">Espacios runs the system end‑to‑end.</p>
+          </div>
+        </section>
+
+        <!-- Capabilities Link Section -->
+        <section id="capabilities" style="padding: 60px 0;">
+          <h2 style="font-size: clamp(28px, 3.2vw, 40px); margin: 0 0 20px;">8 Capability Pillars</h2>
+          <p style="color: var(--muted); line-height: 1.8; max-width: 72ch; font-size: 16px; margin: 0 0 24px;">
+            From demand generation to AI-powered execution, CRM infrastructure to conversation intelligence.
+          </p>
+          <a class="cta" href="/capabilities.html" style="font-size: 14px; padding: 12px 20px;">
+            View Full Capabilities →
+          </a>
+        </section>
+
+        <!-- Delivery Modes -->
+        <section id="delivery" style="padding: 40px 0 80px;">
+          <h2 style="font-size: clamp(28px, 3.2vw, 40px); margin: 0 0 20px;">Delivery Modes</h2>
+          <p style="color: var(--muted); line-height: 1.8; max-width: 72ch; font-size: 16px; margin: 0 0 28px;">
+            Espacios adapts to client maturity while keeping ownership.
+          </p>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+            <div style="background: var(--card-solid); border: 1px solid rgba(20, 20, 20, 0.1); border-radius: var(--radius-lg); padding: 18px; box-shadow: var(--shadow-soft);">
+              <span style="display: inline-block; padding: 6px 10px; border-radius: 999px; border: 1px solid rgba(20, 20, 20, 0.12); font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); background: rgba(20, 20, 20, 0.04); margin-bottom: 14px;">Platform + execution</span>
+              <ul style="margin: 0; padding-left: 18px; color: var(--muted); line-height: 1.65;">
+                <li>Espacios builds and runs everything</li>
+                <li>Client focuses on closing</li>
+              </ul>
+            </div>
+            <div style="background: var(--card-solid); border: 1px solid rgba(20, 20, 20, 0.1); border-radius: var(--radius-lg); padding: 18px; box-shadow: var(--shadow-soft);">
+              <span style="display: inline-block; padding: 6px 10px; border-radius: 999px; border: 1px solid rgba(20, 20, 20, 0.12); font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); background: rgba(20, 20, 20, 0.04); margin-bottom: 14px;">Hybrid support</span>
+              <ul style="margin: 0; padding-left: 18px; color: var(--muted); line-height: 1.65;">
+                <li>Espacios runs the system</li>
+                <li>Client team participates with AI support</li>
+              </ul>
+            </div>
+            <div style="background: var(--card-solid); border: 1px solid rgba(20, 20, 20, 0.1); border-radius: var(--radius-lg); padding: 18px; box-shadow: var(--shadow-soft);">
+              <span style="display: inline-block; padding: 6px 10px; border-radius: 999px; border: 1px solid rgba(20, 20, 20, 0.12); font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); background: rgba(20, 20, 20, 0.04); margin-bottom: 14px;">Full done‑for‑you</span>
+              <ul style="margin: 0; padding-left: 18px; color: var(--muted); line-height: 1.65;">
+                <li>Espacios owns growth, messaging, and automation</li>
+                <li>Outcome‑driven engagement</li>
+              </ul>
+            </div>
+          </div>
+
+          <div style="margin-top: 32px; padding: 24px; border-radius: var(--radius-xl); border: 1px solid rgba(20, 20, 20, 0.1); background: var(--card-solid); box-shadow: var(--shadow-soft);">
+            <span style="display: inline-block; padding: 6px 10px; border-radius: 999px; border: 1px solid rgba(20, 20, 20, 0.12); font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); background: rgba(20, 20, 20, 0.04); margin-bottom: 14px;">Next step</span>
+            <p style="margin: 8px 0 16px; color: var(--muted-2); font-size: 13px; line-height: 1.65;">
+              Tell us your bottleneck, your goal, and your channel mix — we'll propose the system architecture and the execution plan.
+            </p>
+            <a class="cta cta-primary" href="mailto:strategy@espacios.agency?subject=Espacios%20System%20Build" style="padding: 12px 20px; font-size: 14px;">
+              Email strategy@espacios.agency
+            </a>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer style="border-top: 1px solid var(--border); padding: 34px 0 40px; background: color-mix(in srgb, var(--bg) 88%, white 12%);">
+      <div class="wrap">
+        <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; flex-wrap: wrap;">
+          <div>
+            <div class="brand" style="gap: 10px; margin-bottom: 10px;">
+              <span class="mark" aria-hidden="true" style="width: 34px; height: 34px; border-radius: 14px">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" role="img" aria-label="">
+                  <path
+                    d="M7 14l4-4 3 3 6-7"
+                    stroke="currentColor"
+                    stroke-width="2.4"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                  <path
+                    d="M20 8V4h-4"
+                    stroke="currentColor"
+                    stroke-width="2.4"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </span>
+              <span>Espacios</span>
+            </div>
+            <p style="margin: 10px 0 0; color: var(--muted-2); font-size: 13px; line-height: 1.65; max-width: 70ch;">
+              Growth, Messaging &amp; Automation systems. Demand → conversations → qualification → pipeline → revenue.
+            </p>
+            <p style="margin: 8px 0 0; color: var(--muted-2); font-size: 13px; line-height: 1.65;">
+              Contact: <a href="mailto:strategy@espacios.agency">strategy@espacios.agency</a>
+            </p>
+          </div>
+          <div style="color: var(--muted-2); font-size: 13px; line-height: 1.65;">
+            <div>© <span id="year"></span> Espacios. All rights reserved.</div>
+            <div style="margin-top: 8px">Espacios does not sell tools. Espacios runs the system end‑to‑end.</div>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <!-- React App Script -->
+    <script type="module" src="/src/index.tsx"></script>
+
+    <!-- Navigation & Animation Scripts -->
+    <script>
+      // Set current year
+      document.getElementById('year').textContent = new Date().getFullYear();
+
+      // Smooth scroll with offset for sticky header
+      document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+          const href = this.getAttribute('href');
+          if (href === '#') return;
+
+          e.preventDefault();
+          const target = document.querySelector(href);
+          if (target) {
+            const offset = 80;
+            const elementPosition = target.getBoundingClientRect().top;
+            const offsetPosition = elementPosition + window.pageYOffset - offset;
+
+            window.scrollTo({
+              top: offsetPosition,
+              behavior: 'smooth'
+            });
+          }
+        });
+      });
+
+      // Animate app container when scrolled into view
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+          }
+        });
+      }, { threshold: 0.1 });
+
+      const appContainer = document.querySelector('.app-container');
+      if (appContainer) {
+        observer.observe(appContainer);
+      }
+
+      // Update active nav link on scroll
+      const sections = document.querySelectorAll('section[id]');
+      const navLinks = document.querySelectorAll('nav a[href^="#"]');
+
+      window.addEventListener('scroll', () => {
+        let current = '';
+        sections.forEach(section => {
+          const sectionTop = section.offsetTop;
+          const sectionHeight = section.clientHeight;
+          if (window.pageYOffset >= (sectionTop - 100)) {
+            current = section.getAttribute('id');
+          }
+        });
+
+        navLinks.forEach(link => {
+          link.classList.remove('active');
+          if (link.getAttribute('href') === `#${current}`) {
+            link.classList.add('active');
+          }
+        });
+      });
+    </script>
+  </body>
 </html>
