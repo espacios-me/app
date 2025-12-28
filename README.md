@@ -8,10 +8,13 @@ A done-for-you growth and automation agency platform powered by AI. This app hel
 - **Interactive Roadmaps**: Step-by-step growth plans with audio briefings
 - **Multiple Focus Areas**: Lead generation, WhatsApp sales, AI automation, email nurturing, CRM infrastructure, and custom workflows
 - **Audio Briefings**: Professional voice narration for each strategic phase
+- **Secure Architecture**: Backend API proxy protects your API keys
+- **Error Handling**: Graceful error boundaries and user feedback
 
 ## 📋 Prerequisites
 
 - Node.js (v18 or higher)
+- npm or yarn
 - A Google Gemini API key
 
 ## 🛠️ Setup
@@ -22,26 +25,52 @@ A done-for-you growth and automation agency platform powered by AI. This app hel
    cd app
    ```
 
-2. **Install dependencies**
+2. **Install frontend dependencies**
    ```bash
    npm install
    ```
 
-3. **Configure your API key**
+3. **Install backend server dependencies**
+   ```bash
+   cd server
+   npm install
+   cd ..
+   ```
 
-   Create or edit `.env.local` file in the root directory:
+4. **Configure your API key**
+
+   Create a `.env.local` file in the root directory (copy from `.env.example`):
+   ```bash
+   cp .env.example .env.local
+   ```
+
+   Edit `.env.local` and add your API key:
    ```env
    GEMINI_API_KEY=your_api_key_here
+   VITE_API_URL=http://localhost:3001
+   PORT=3001
    ```
 
    Get your API key from: https://aistudio.google.com/app/apikey
 
-4. **Run the development server**
+5. **Run the development servers**
+
+   You need to run both the backend and frontend servers:
+
+   **Terminal 1 - Backend API Proxy:**
+   ```bash
+   cd server
+   npm run dev
+   ```
+
+   **Terminal 2 - Frontend:**
    ```bash
    npm run dev
    ```
 
-   The app will be available at `http://localhost:3000`
+   The frontend will be available at `http://localhost:3000`
+
+   The backend API will run on `http://localhost:3001`
 
 ## 🏗️ Project Structure
 
@@ -51,15 +80,22 @@ app/
 │   ├── components/       # React components
 │   │   ├── StrategyPlanner.tsx
 │   │   ├── RoadmapViewer.tsx
-│   │   └── ...
-│   ├── services/         # API services
-│   │   ├── geminiService.ts
-│   │   └── audioUtils.ts
+│   │   └── ErrorBoundary.tsx
+│   ├── services/         # API services & utilities
+│   │   ├── geminiService.ts  # Backend API client
+│   │   ├── audioUtils.ts     # Audio processing utilities
+│   │   └── audioContext.ts   # AudioContext singleton manager
 │   ├── App.tsx           # Main app component
 │   ├── types.ts          # TypeScript type definitions
-│   └── index.tsx         # App entry point
-├── public/               # Static assets
+│   ├── index.tsx         # App entry point
+│   └── index.css         # Global styles & Tailwind directives
+├── server/               # Backend API proxy
+│   ├── index.js          # Express server
+│   └── package.json      # Server dependencies
 ├── .env.local            # Environment variables (create this)
+├── .env.example          # Example environment variables
+├── tailwind.config.js    # Tailwind CSS configuration
+├── postcss.config.js     # PostCSS configuration
 ├── package.json
 ├── tsconfig.json
 └── vite.config.ts
@@ -67,22 +103,72 @@ app/
 
 ## 🔧 Available Scripts
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
+**Frontend:**
+- `npm run dev` - Start frontend development server (port 3000)
+- `npm run build` - Build frontend for production
 - `npm run preview` - Preview production build
 
+**Backend (run from /server directory):**
+- `npm run dev` - Start backend API proxy server with auto-reload (port 3001)
+- `npm start` - Start backend API proxy server (production)
+
 ## 🔒 Security
+
+✅ **Secure Architecture**: This application uses a backend proxy server to protect your API keys. The Gemini API key is never exposed to the browser.
+
+**Security Features:**
+- API keys stored server-side only (never in client bundle)
+- Backend proxy handles all Gemini API calls
+- Environment variables properly gitignored
+- Error boundary for graceful error handling
+- Proper CORS configuration
 
 ⚠️ **Important**: Never commit your API keys to the repository. The `.env.local` file is gitignored to prevent accidental commits of sensitive data.
 
 ## 📦 Technologies
 
+**Frontend:**
 - **React 19** - UI framework
 - **TypeScript** - Type safety
-- **Vite** - Build tool
-- **Tailwind CSS** - Styling
-- **Google Gemini AI** - AI-powered content generation
-- **Lucide React** - Icons
+- **Vite** - Build tool & dev server
+- **Tailwind CSS** - Utility-first styling (properly configured)
+- **Lucide React** - Icon library
+
+**Backend:**
+- **Express** - Web server framework
+- **Google Gemini AI** - AI-powered content generation & TTS
+- **CORS** - Cross-origin request handling
+- **dotenv** - Environment variable management
+
+**Features:**
+- Error boundary for crash prevention
+- Singleton AudioContext for efficient audio management
+- Backend API proxy for security
+- Type-safe API integration
+
+## 🚀 Production Deployment
+
+### Backend Server
+
+Deploy the `/server` directory to your preferred Node.js hosting platform (Heroku, Railway, Render, etc.):
+
+1. Set environment variable `GEMINI_API_KEY` in your hosting platform
+2. Deploy the server directory
+3. Note the production URL (e.g., `https://your-api.herokuapp.com`)
+
+### Frontend
+
+1. Update `.env.production` with your production API URL:
+   ```env
+   VITE_API_URL=https://your-api.herokuapp.com
+   ```
+
+2. Build the frontend:
+   ```bash
+   npm run build
+   ```
+
+3. Deploy the `dist` folder to your static hosting (Vercel, Netlify, Cloudflare Pages, etc.)
 
 ## 📝 License
 

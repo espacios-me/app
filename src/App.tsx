@@ -3,68 +3,41 @@
  * SPDX-License-Identifier: Apache-2.0
 */
 
-import React, { useState, useEffect, useRef } from 'react';
-import { TrendingUp, Loader2, RefreshCw, ChevronLeft } from 'lucide-react';
+import React, { useState } from 'react';
+import { TrendingUp, Loader2, ChevronLeft, AlertCircle, X } from 'lucide-react';
 import StrategyPlanner from './components/StrategyPlanner';
 import RoadmapViewer from './components/RoadmapViewer';
 import { AppState, BusinessDetails, GrowthRoadmap } from './types';
-import { generateGrowthRoadmap, generateStepContent, generateBriefingAudio, getStepCount } from './services/geminiService';
+import { generateGrowthRoadmap, generateStepContent, generateBriefingAudio } from './services/geminiService';
+import { getAudioContext } from './services/audioContext';
 
 function App() {
   const [appState, setAppState] = useState<AppState>(AppState.PLANNING);
   const [details, setDetails] = useState<BusinessDetails | null>(null);
   const [roadmap, setRoadmap] = useState<GrowthRoadmap | null>(null);
   const [currentPlayingIndex, setCurrentPlayingIndex] = useState(0);
-  const [isGeneratingNext, setIsGeneratingNext] = useState(false);
-  const generatingRef = useRef(false);
-
-  // Buffer Engine
-  useEffect(() => {
-    if (appState === AppState.READY_TO_VIEW && roadmap && details) {
-        const totalTarget = getStepCount(details.auditDepth);
-        if (roadmap.steps.length < totalTarget && roadmap.steps.length < currentPlayingIndex + 3 && !generatingRef.current) {
-            generateNextPhase(roadmap.steps.length + 1);
-        }
-    }
-  }, [appState, roadmap, currentPlayingIndex, details]);
-
-  const generateNextPhase = async (index: number) => {
-    if (!details || !roadmap || generatingRef.current) return;
-    try {
-        generatingRef.current = true;
-        setIsGeneratingNext(true);
-        
-        const totalTarget = getStepCount(details.auditDepth);
-        const blueprint = roadmap.steps.find(s => false); // Just a placeholder logic
-        // We actually need the original outlines from generateGrowthRoadmap...
-        // Let's store them in the roadmap object.
-    } finally {
-        generatingRef.current = false;
-        setIsGeneratingNext(false);
-    }
-  };
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const startAnalysis = async (input: BusinessDetails) => {
     setDetails(input);
     setAppState(AppState.GENERATING_ROADMAP);
-    
+    setErrorMessage(null);
+
     try {
         const { executiveSummary, stepOutlines } = await generateGrowthRoadmap(input);
-        
+
         // Generate first step immediately
         const first = stepOutlines[0];
         const text = await generateStepContent(input, 1, stepOutlines.length, first.title, first.goal, "");
-        const AudioContextClass = (window as any).AudioContext || (window as any).webkitAudioContext;
-        const ctx = new AudioContextClass();
+        const ctx = getAudioContext();
         const audio = await generateBriefingAudio(text, ctx);
-        await ctx.close();
 
         const initialRoadmap: GrowthRoadmap = {
             totalSteps: stepOutlines.length,
             executiveSummary,
             steps: [{ index: 1, title: first.title, text, audioBuffer: audio }]
         };
-        
+
         setRoadmap(initialRoadmap);
         setAppState(AppState.READY_TO_VIEW);
 
@@ -72,7 +45,9 @@ function App() {
         fillRoadmap(input, initialRoadmap, stepOutlines);
 
     } catch (e) {
-        console.error(e);
+        console.error('Error generating roadmap:', e);
+        const errorMsg = e instanceof Error ? e.message : 'An unexpected error occurred';
+        setErrorMessage(`Failed to generate roadmap: ${errorMsg}. Please check your connection and try again.`);
         setAppState(AppState.PLANNING);
     }
   };
@@ -83,11 +58,9 @@ function App() {
           const beat = outlines[i];
           const prevText = currentRoadmap.steps.map(s => s.text).join(" ");
           const text = await generateStepContent(input, i + 1, outlines.length, beat.title, beat.goal, prevText);
-          
-          const AudioContextClass = (window as any).AudioContext || (window as any).webkitAudioContext;
-          const ctx = new AudioContextClass();
+
+          const ctx = getAudioContext();
           const audio = await generateBriefingAudio(text, ctx);
-          await ctx.close();
 
           currentRoadmap = {
               ...currentRoadmap,
@@ -116,6 +89,26 @@ function App() {
               </button>
           )}
       </nav>
+
+      {/* Error notification */}
+      {errorMessage && (
+        <div className="fixed top-24 left-1/2 -translate-x-1/2 z-50 max-w-2xl w-full px-6 animate-fade-in">
+          <div className="bg-red-50 border-2 border-red-200 rounded-2xl p-6 shadow-2xl flex items-start gap-4">
+            <AlertCircle size={24} className="text-red-600 shrink-0 mt-1" />
+            <div className="flex-1">
+              <h3 className="font-bold text-red-900 mb-1">Error</h3>
+              <p className="text-sm text-red-700">{errorMessage}</p>
+            </div>
+            <button
+              onClick={() => setErrorMessage(null)}
+              className="p-2 hover:bg-red-100 rounded-xl transition-colors shrink-0"
+              aria-label="Close error message"
+            >
+              <X size={20} className="text-red-600" />
+            </button>
+          </div>
+        </div>
+      )}
 
       <main className="max-w-7xl mx-auto px-6 pt-32 pb-32">
           {appState === AppState.PLANNING && (
