@@ -26,9 +26,6 @@ export default defineConfig(({ mode }) => {
         host: '0.0.0.0',
       },
       plugins: [react()],
-      define: {
-        'process.env.API_KEY': JSON.stringify(apiKey),
-      },
       resolve: {
         alias: {
           '@': path.resolve('.'),

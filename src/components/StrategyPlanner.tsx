@@ -10,6 +10,9 @@ import { BusinessDetails, StrategyFocus, AppState } from '../types';
 interface Props {
   onPlanCreated: (details: BusinessDetails) => void;
   appState: AppState;
+  apiKey: string;
+  apiKeyError: string | null;
+  onApiKeyChange: (value: string) => void;
 }
 
 const FOCUS_OPTIONS: { id: StrategyFocus; label: string; icon: React.ElementType; desc: string }[] = [
@@ -21,7 +24,7 @@ const FOCUS_OPTIONS: { id: StrategyFocus; label: string; icon: React.ElementType
     { id: 'CUSTOM_WORKFLOWS', label: 'Custom Workflows', icon: Workflow, desc: 'Ops automation tailored to your logic.' },
 ];
 
-const StrategyPlanner: React.FC<Props> = ({ onPlanCreated, appState }) => {
+const StrategyPlanner: React.FC<Props> = ({ onPlanCreated, appState, apiKey, apiKeyError, onApiKeyChange }) => {
   const [details, setDetails] = useState<BusinessDetails>({
     companyName: '',
     currentBottleneck: '',
@@ -45,6 +48,24 @@ const StrategyPlanner: React.FC<Props> = ({ onPlanCreated, appState }) => {
         <div className="space-y-2">
             <h2 className="text-3xl font-serif text-editorial-900 tracking-tight">Growth Architecture</h2>
             <p className="text-stone-500 font-light">Define your current landscape and target vision.</p>
+        </div>
+
+        <div className="space-y-3 p-4 border border-stone-100 rounded-2xl bg-stone-50">
+            <div className="flex items-center gap-2 text-sm font-medium text-stone-700">
+                <AlertCircle size={18} className="text-amber-500" />
+                Add your Gemini API key (kept in this browser only)
+            </div>
+            <input
+                type="password"
+                inputMode="text"
+                autoComplete="off"
+                placeholder="GEMINI_API_KEY"
+                className="w-full bg-white border-2 border-stone-200 rounded-xl py-3 px-4 font-mono text-sm outline-none focus:border-editorial-900 transition-all"
+                value={apiKey}
+                onChange={e => onApiKeyChange(e.target.value)}
+            />
+            <p className="text-[11px] text-stone-500">The key is stored locally to call Gemini directly from your session.</p>
+            {apiKeyError && <p className="text-sm text-red-500 flex items-center gap-2"><AlertCircle size={16} />{apiKeyError}</p>}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
