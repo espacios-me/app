@@ -3,12 +3,11 @@
  * SPDX-License-Identifier: Apache-2.0
 */
 
-import { GoogleGenAI, Modality, Type } from "@google/genai";
-import { BusinessDetails, RoadmapStep, StrategyFocus } from "../types";
+import { BusinessDetails, StrategyFocus } from "../types";
 import { base64ToArrayBuffer, pcmToWav } from "./audioUtils";
 
-// GUIDELINE: Always use process.env.API_KEY directly when initializing.
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Use backend API proxy instead of direct Gemini API calls
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 const ESPACIOS_KNOWLEDGE_BASE = `
 Espacios is a done-for-you growth and automation agency.
@@ -45,7 +44,7 @@ const getFocusInstruction = (focus: StrategyFocus): string => {
 
 /**
  * Generates the high-level roadmap outline.
- * Uses gemini-3-pro-preview for complex strategic reasoning.
+ * Calls backend API proxy which uses gemini-3-pro-preview for complex strategic reasoning.
  */
 export const generateGrowthRoadmap = async (
     details: BusinessDetails
@@ -56,7 +55,7 @@ export const generateGrowthRoadmap = async (
     const prompt = `
     Act as a World-Class Growth Strategist from Espacios Agency.
     ${ESPACIOS_KNOWLEDGE_BASE}
-    
+
     Target Company: ${details.companyName}
     Current Bottleneck: ${details.currentBottleneck}
     Desired Growth Goal: ${details.growthGoal}
@@ -73,33 +72,18 @@ export const generateGrowthRoadmap = async (
     }
     `;
 
-    const response = await ai.models.generateContent({
-        model: 'gemini-3-pro-preview',
-        contents: prompt,
-        config: { 
-            responseMimeType: 'application/json',
-            responseSchema: {
-                type: Type.OBJECT,
-                properties: {
-                    executiveSummary: { type: Type.STRING },
-                    steps: {
-                        type: Type.ARRAY,
-                        items: {
-                            type: Type.OBJECT,
-                            properties: {
-                                title: { type: Type.STRING },
-                                goal: { type: Type.STRING }
-                            },
-                            required: ["title", "goal"]
-                        }
-                    }
-                },
-                required: ["executiveSummary", "steps"]
-            }
-        }
+    const response = await fetch(`${API_BASE_URL}/api/generate-roadmap`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt, totalSteps })
     });
 
-    const data = JSON.parse(response.text!);
+    if (!response.ok) {
+        const error = await response.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(error.error || 'Failed to generate roadmap');
+    }
+
+    const data = await response.json();
     return {
         executiveSummary: data.executiveSummary,
         stepOutlines: data.steps
@@ -118,53 +102,57 @@ export const generateStepContent = async (
     previousContext: string = ""
 ): Promise<string> => {
     const focusInstruction = getFocusInstruction(details.strategyFocus);
-    
+
     const prompt = `
     You are the Espacios Growth AI. You are delivering a professional strategic briefing for ${details.companyName}.
     This is Step ${stepIndex} of ${totalSteps} in their Growth Roadmap.
     Phase: ${stepTitle}
     Objective: ${stepGoal}
-    
+
     Context: ${focusInstruction}
     Previous Context: ${previousContext.slice(-1000)}
 
-    Task: Write the spoken narration for this phase. Be authoritative, tactical, and visionary. 
+    Task: Write the spoken narration for this phase. Be authoritative, tactical, and visionary.
     Don't just say what to do; say how Espacios executes it. Use terminology like "automation logic," "lead routing," or "conversion systems."
     Length: ~150-200 words.
-    
+
     Output strictly the raw narration text. No titles or markdown.
     `;
 
-    const response = await ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
-        contents: prompt
+    const response = await fetch(`${API_BASE_URL}/api/generate-step`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt })
     });
 
-    return response.text!.trim();
+    if (!response.ok) {
+        const error = await response.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(error.error || 'Failed to generate step content');
+    }
+
+    const data = await response.json();
+    return data.text;
 };
 
 /**
- * Transforms text into spoken audio using Gemini 2.5 Flash TTS.
+ * Transforms text into spoken audio using Gemini 2.5 Flash TTS via backend API.
  */
 export const generateBriefingAudio = async (text: string, audioContext: AudioContext): Promise<AudioBuffer> => {
-  const response = await ai.models.generateContent({
-    model: 'gemini-2.5-flash-preview-tts',
-    contents: [{ parts: [{ text: text }] }],
-    config: {
-      responseModalities: [Modality.AUDIO],
-      speechConfig: {
-        voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Zephyr' } }
-      }
-    }
+  const response = await fetch(`${API_BASE_URL}/api/generate-audio`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text, voiceName: 'Zephyr' })
   });
 
-  const part = response.candidates?.[0]?.content?.parts?.[0];
-  const audioData = part?.inlineData?.data;
-  if (!audioData) throw new Error("No audio data received.");
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ error: 'Unknown error' }));
+    throw new Error(error.error || 'Failed to generate audio');
+  }
 
-  const mimeType = part?.inlineData?.mimeType || "audio/pcm;rate=24000";
-  const match = mimeType.match(/rate=(\d+)/);
-  const sampleRate = match ? parseInt(match[1], 10) : 24000;
+  const data = await response.json();
+  const { audioData, sampleRate } = data;
+
+  if (!audioData) throw new Error("No audio data received.");
 
   // PCM data is converted to a WAV blob so it can be decoded by the browser's native decodeAudioData method.
   const wavArrayBuffer = await pcmToWav(base64ToArrayBuffer(audioData), sampleRate).arrayBuffer();
