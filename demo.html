@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo - Espacios Growth Platform</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .font-serif {
+            font-family: 'DM Serif Display', serif;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s ease-out forwards;
+        }
+
+        .fade-in-delay-1 { animation-delay: 0.1s; opacity: 0; }
+        .fade-in-delay-2 { animation-delay: 0.2s; opacity: 0; }
+        .fade-in-delay-3 { animation-delay: 0.3s; opacity: 0; }
+        .fade-in-delay-4 { animation-delay: 0.4s; opacity: 0; }
+        .fade-in-delay-5 { animation-delay: 0.5s; opacity: 0; }
+    </style>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'sans': ['Inter', 'sans-serif'],
+                        'serif': ['"DM Serif Display"', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-stone-50">
+    <!-- Navigation -->
+    <nav class="bg-white border-b border-gray-200 py-4 px-6 sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto flex items-center justify-between">
+            <a href="index-landing.html" class="flex items-center gap-2 font-bold text-xl">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                </svg>
+                Espacios
+            </a>
+            <div class="flex gap-4">
+                <a href="index-landing.html" class="text-gray-600 hover:text-black transition-colors">Home</a>
+                <a href="standalone.html" class="bg-black text-white px-4 py-2 rounded-lg font-semibold hover:bg-gray-800 transition-colors">
+                    Try It Free
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Banner -->
+    <div class="bg-gradient-to-r from-black to-gray-800 text-white py-12 px-6">
+        <div class="max-w-4xl mx-auto text-center">
+            <div class="inline-block bg-white/10 px-4 py-2 rounded-full text-sm font-bold mb-4">
+                LIVE DEMO
+            </div>
+            <h1 class="text-4xl md:text-5xl font-serif font-bold mb-4">
+                Example Growth Roadmap
+            </h1>
+            <p class="text-xl text-gray-300">
+                See what a real growth strategy looks like for "Acme Realty"
+            </p>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="max-w-6xl mx-auto px-6 py-12 space-y-12">
+        <!-- Executive Summary -->
+        <div class="bg-black text-white rounded-3xl p-8 shadow-2xl fade-in">
+            <div class="mb-4">
+                <span class="px-3 py-1 bg-white/10 rounded-full text-xs font-bold uppercase">Strategic Briefing</span>
+            </div>
+            <h2 class="text-3xl font-serif font-bold mb-4">
+                Transformation Roadmap for Acme Realty
+            </h2>
+            <p class="text-lg text-gray-300 leading-relaxed">
+                Transform Acme Realty from manual lead management to an automated conversion machine.
+                This 5-phase roadmap focuses on capturing high-intent leads through Meta ads, automating
+                WhatsApp responses with AI, and building a CRM infrastructure that turns prospects into
+                closed deals with minimal manual intervention.
+            </p>
+
+            <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4 pt-6 border-t border-white/10">
+                <div>
+                    <div class="text-xs text-gray-400 uppercase font-bold mb-1">Company</div>
+                    <div class="text-white font-semibold">Acme Realty</div>
+                </div>
+                <div>
+                    <div class="text-xs text-gray-400 uppercase font-bold mb-1">Focus</div>
+                    <div class="text-white font-semibold">WhatsApp Sales</div>
+                </div>
+                <div>
+                    <div class="text-xs text-gray-400 uppercase font-bold mb-1">Depth</div>
+                    <div class="text-white font-semibold">Standard (5 Steps)</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Roadmap Steps -->
+        <div class="space-y-6">
+            <h3 class="text-xs font-bold uppercase tracking-widest text-gray-500 pl-4">Roadmap Execution Phases</h3>
+
+            <!-- Step 1 -->
+            <div class="bg-white rounded-2xl p-8 border-2 border-black shadow-xl fade-in fade-in-delay-1">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="h-10 w-10 bg-black text-white rounded-xl flex items-center justify-center font-bold">
+                        01
+                    </div>
+                    <span class="text-green-500">✓</span>
+                </div>
+                <h4 class="text-2xl font-serif font-bold mb-3">Lead Capture Infrastructure</h4>
+                <p class="text-gray-600 leading-relaxed">
+                    First, we establish your demand generation engine. We'll launch targeted Meta ad campaigns
+                    that drive qualified leads directly to WhatsApp. The automation logic routes conversations
+                    based on property interest and urgency, ensuring every lead gets instant acknowledgment
+                    while critical inquiries reach your team immediately.
+                </p>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="bg-white rounded-2xl p-8 border-2 border-gray-200 shadow-lg fade-in fade-in-delay-2">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="h-10 w-10 bg-black text-white rounded-xl flex items-center justify-center font-bold">
+                        02
+                    </div>
+                </div>
+                <h4 class="text-2xl font-serif font-bold mb-3">AI Response System</h4>
+                <p class="text-gray-600 leading-relaxed">
+                    Next, we deploy AI copilots to handle first-touch responses. When someone asks about a
+                    listing at 11 PM, they get instant answers about price, square footage, and neighborhood
+                    details. The AI qualifies intent by asking about timeline and budget, then escalates
+                    serious buyers to your team with complete context.
+                </p>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="bg-white rounded-2xl p-8 border-2 border-gray-200 shadow-lg fade-in fade-in-delay-3">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="h-10 w-10 bg-gray-100 text-gray-400 rounded-xl flex items-center justify-center font-bold">
+                        03
+                    </div>
+                </div>
+                <h4 class="text-2xl font-serif font-bold mb-3 text-gray-500">Shared Inbox Architecture</h4>
+                <p class="text-gray-500 leading-relaxed">
+                    We then build a shared inbox that gives your entire team visibility into every conversation.
+                    No more leads getting lost because someone went on vacation. Assignment rules automatically
+                    distribute new chats, and if a message sits unanswered for 10 minutes, it escalates to a
+                    backup agent.
+                </p>
+            </div>
+
+            <!-- Step 4 -->
+            <div class="bg-white rounded-2xl p-8 border-2 border-gray-200 shadow-lg fade-in fade-in-delay-4">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="h-10 w-10 bg-gray-100 text-gray-400 rounded-xl flex items-center justify-center font-bold">
+                        04
+                    </div>
+                </div>
+                <h4 class="text-2xl font-serif font-bold mb-3 text-gray-500">CRM Integration & Pipeline</h4>
+                <p class="text-gray-500 leading-relaxed">
+                    Every WhatsApp conversation automatically creates or updates a contact in your CRM. When a
+                    lead says "I want to schedule a viewing," it triggers a calendar invite and moves them to
+                    your "Scheduled Showings" pipeline stage. Your team sees the full conversation history,
+                    property interests, and engagement score in one place.
+                </p>
+            </div>
+
+            <!-- Step 5 -->
+            <div class="bg-white rounded-2xl p-8 border-2 border-gray-200 shadow-lg fade-in fade-in-delay-5">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="h-10 w-10 bg-gray-100 text-gray-400 rounded-xl flex items-center justify-center font-bold">
+                        05
+                    </div>
+                </div>
+                <h4 class="text-2xl font-serif font-bold mb-3 text-gray-500">Follow-up Automation & Nurture</h4>
+                <p class="text-gray-500 leading-relaxed">
+                    Finally, we implement nurture sequences for leads who aren't ready to buy today. If someone
+                    expressed interest but hasn't responded in 3 days, they get a personalized WhatsApp message
+                    with new listings matching their criteria. Cold leads receive monthly market updates and
+                    property alerts, keeping you top-of-mind until they're ready to move.
+                </p>
+            </div>
+        </div>
+
+        <!-- CTA Section -->
+        <div class="bg-gradient-to-r from-black to-gray-800 text-white rounded-3xl p-12 text-center">
+            <h3 class="text-3xl font-serif font-bold mb-4">Ready to Build Your Roadmap?</h3>
+            <p class="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
+                This is just an example. Your actual roadmap will be customized to your specific business,
+                bottlenecks, and growth goals.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="standalone.html" class="bg-white text-black px-8 py-4 rounded-xl font-bold text-lg hover:bg-gray-100 transition-all">
+                    Create Your Roadmap →
+                </a>
+                <a href="index-landing.html" class="border-2 border-white text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-white hover:text-black transition-all">
+                    Learn More
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-black text-white py-8 px-6 mt-12">
+        <div class="max-w-6xl mx-auto text-center text-gray-400 text-sm">
+            <p>&copy; 2025 Espacios. Apache-2.0 License.</p>
+        </div>
+    </footer>
+</body>
+</html>
