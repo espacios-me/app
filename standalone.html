@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Espacios Growth Platform</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+
+    <!-- Babel Standalone for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .font-serif {
+            font-family: 'DM Serif Display', serif;
+        }
+
+        .editorial-100 {
+            background-color: #F9F7F4;
+        }
+
+        .editorial-900 {
+            background-color: #1A1A1A;
+            color: #1A1A1A;
+        }
+
+        .bg-editorial-900 {
+            background-color: #1A1A1A;
+        }
+
+        .text-editorial-900 {
+            color: #1A1A1A;
+        }
+
+        .border-editorial-900 {
+            border-color: #1A1A1A;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.8s ease-out forwards;
+        }
+    </style>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'sans': ['Inter', 'sans-serif'],
+                        'serif': ['"DM Serif Display"', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="editorial-100">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef, Component } = React;
+
+        // API Configuration
+        const API_BASE_URL = 'http://localhost:3001';
+
+        // Audio Context Manager
+        let globalAudioContext = null;
+
+        const getAudioContext = () => {
+            if (!globalAudioContext || globalAudioContext.state === 'closed') {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                if (!AudioContextClass) {
+                    throw new Error('AudioContext is not supported in this browser');
+                }
+                globalAudioContext = new AudioContextClass();
+            }
+            return globalAudioContext;
+        };
+
+        // Audio Utilities
+        const base64ToArrayBuffer = (base64) => {
+            const binaryString = window.atob(base64);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        };
+
+        const writeString = (view, offset, string) => {
+            for (let i = 0; i < string.length; i++) {
+                view.setUint8(offset + i, string.charCodeAt(i));
+            }
+        };
+
+        const pcmToWav = (pcmData, sampleRate = 24000) => {
+            const pcm16 = new Int16Array(pcmData);
+            const numSamples = pcm16.length;
+            const numChannels = 1;
+            const bytesPerSample = 2;
+            const blockAlign = numChannels * bytesPerSample;
+            const byteRate = sampleRate * blockAlign;
+            const dataSize = numSamples * blockAlign;
+            const wavHeaderSize = 44;
+            const totalSize = wavHeaderSize + dataSize;
+
+            const buffer = new ArrayBuffer(totalSize);
+            const view = new DataView(buffer);
+
+            writeString(view, 0, 'RIFF');
+            view.setUint32(4, totalSize - 8, true);
+            writeString(view, 8, 'WAVE');
+            writeString(view, 12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true);
+            view.setUint16(22, numChannels, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, byteRate, true);
+            view.setUint16(32, blockAlign, true);
+            view.setUint16(34, 16, true);
+            writeString(view, 36, 'data');
+            view.setUint32(40, dataSize, true);
+
+            let offset = 44;
+            for (let i = 0; i < numSamples; i++, offset += 2) {
+                view.setInt16(offset, pcm16[i], true);
+            }
+
+            return new Blob([view], { type: 'audio/wav' });
+        };
+
+        // API Service Functions
+        const getStepCount = (depth) => {
+            switch (depth) {
+                case 'EXPRESS': return 3;
+                case 'STANDARD': return 5;
+                case 'COMPREHENSIVE': return 8;
+                default: return 5;
+            }
+        };
+
+        const getFocusInstruction = (focus) => {
+            const instructions = {
+                'LEAD_GEN': "Focus on demand generation, ad-to-WhatsApp funnels, and high-intent Google search strategy.",
+                'WHATSAPP_SALES': "Focus on conversational commerce, reducing lead leakage in DMs, and shared inbox efficiency.",
+                'AI_AUTOMATION': "Focus on using AI for lead qualification and instant response handling to scale without adding headcount.",
+                'EMAIL_NURTURE': "Focus on turning cold leads into long-term revenue through sophisticated drip sequences.",
+                'CRM_INFRA': "Focus on connecting silos, pipeline visibility, and single-source-of-truth setup.",
+                'CUSTOM_WORKFLOWS': "Focus on unique operational logic, booking automations, and removing manual data chaos."
+            };
+            return instructions[focus] || "Focus on holistic business growth and automation.";
+        };
+
+        const generateGrowthRoadmap = async (details) => {
+            const totalSteps = getStepCount(details.auditDepth);
+            const focusInstruction = getFocusInstruction(details.strategyFocus);
+
+            const prompt = `Act as a World-Class Growth Strategist from Espacios Agency.
+
+Target Company: ${details.companyName}
+Current Bottleneck: ${details.currentBottleneck}
+Desired Growth Goal: ${details.growthGoal}
+Strategy Focus: ${details.strategyFocus} (${focusInstruction})
+
+Generate a ${totalSteps}-step "Growth Path" roadmap.
+1. An executive summary (2-3 sentences) of the transformation.
+2. A list of exactly ${totalSteps} steps, each with a professional title and a strategic goal for that phase.
+
+Return JSON matching this schema:
+{
+  "executiveSummary": "string",
+  "steps": [{"title": "string", "goal": "string"}]
+}`;
+
+            const response = await fetch(`${API_BASE_URL}/api/generate-roadmap`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prompt, totalSteps })
+            });
+
+            if (!response.ok) {
+                const error = await response.json().catch(() => ({ error: 'Unknown error' }));
+                throw new Error(error.error || 'Failed to generate roadmap');
+            }
+
+            const data = await response.json();
+            return {
+                executiveSummary: data.executiveSummary,
+                stepOutlines: data.steps
+            };
+        };
+
+        const generateStepContent = async (details, stepIndex, totalSteps, stepTitle, stepGoal, previousContext = "") => {
+            const focusInstruction = getFocusInstruction(details.strategyFocus);
+
+            const prompt = `You are the Espacios Growth AI. You are delivering a professional strategic briefing for ${details.companyName}.
+This is Step ${stepIndex} of ${totalSteps} in their Growth Roadmap.
+Phase: ${stepTitle}
+Objective: ${stepGoal}
+
+Context: ${focusInstruction}
+Previous Context: ${previousContext.slice(-1000)}
+
+Task: Write the spoken narration for this phase. Be authoritative, tactical, and visionary.
+Don't just say what to do; say how Espacios executes it. Use terminology like "automation logic," "lead routing," or "conversion systems."
+Length: ~150-200 words.
+
+Output strictly the raw narration text. No titles or markdown.`;
+
+            const response = await fetch(`${API_BASE_URL}/api/generate-step`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prompt })
+            });
+
+            if (!response.ok) {
+                const error = await response.json().catch(() => ({ error: 'Unknown error' }));
+                throw new Error(error.error || 'Failed to generate step content');
+            }
+
+            const data = await response.json();
+            return data.text;
+        };
+
+        const generateBriefingAudio = async (text, audioContext) => {
+            const response = await fetch(`${API_BASE_URL}/api/generate-audio`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text, voiceName: 'Zephyr' })
+            });
+
+            if (!response.ok) {
+                const error = await response.json().catch(() => ({ error: 'Unknown error' }));
+                throw new Error(error.error || 'Failed to generate audio');
+            }
+
+            const data = await response.json();
+            const { audioData, sampleRate } = data;
+
+            if (!audioData) throw new Error("No audio data received.");
+
+            const wavArrayBuffer = await pcmToWav(base64ToArrayBuffer(audioData), sampleRate).arrayBuffer();
+            return await audioContext.decodeAudioData(wavArrayBuffer);
+        };
+
+        // Strategy Planner Component
+        const StrategyPlanner = ({ onPlanCreated, appState }) => {
+            const [details, setDetails] = useState({
+                companyName: '',
+                currentBottleneck: '',
+                growthGoal: '',
+                strategyFocus: 'LEAD_GEN',
+                auditDepth: 'STANDARD'
+            });
+
+            const isLocked = appState !== 'PLANNING';
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                if (details.companyName && details.currentBottleneck && details.growthGoal) {
+                    onPlanCreated(details);
+                }
+            };
+
+            const focusOptions = [
+                { id: 'LEAD_GEN', label: 'Lead Generation', desc: 'Generate high-intent leads via Meta & Google.' },
+                { id: 'WHATSAPP_SALES', label: 'WhatsApp Sales', desc: 'Turn messaging into a conversion machine.' },
+                { id: 'AI_AUTOMATION', label: 'AI Automation', desc: 'Scale responses with qualified AI first-responses.' },
+                { id: 'EMAIL_NURTURE', label: 'Email Nurturing', desc: 'Drip sequences that mature your leads.' },
+                { id: 'CRM_INFRA', label: 'CRM & Pipeline', desc: 'Connect silos for full funnel visibility.' },
+                { id: 'CUSTOM_WORKFLOWS', label: 'Custom Workflows', desc: 'Ops automation tailored to your logic.' }
+            ];
+
+            return (
+                <form onSubmit={handleSubmit} className={`space-y-8 ${isLocked ? 'opacity-40 pointer-events-none' : ''}`}>
+                    <div className="bg-white rounded-3xl p-8 shadow-xl border border-gray-200 space-y-6">
+                        <div>
+                            <h2 className="text-2xl font-serif font-bold mb-2">Growth Architecture</h2>
+                            <p className="text-gray-600">Define your current landscape and target vision.</p>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-xs font-bold uppercase text-gray-500 mb-2">Company Name</label>
+                                <input
+                                    type="text"
+                                    required
+                                    placeholder="e.g. Acme Realty"
+                                    className="w-full bg-gray-50 border-2 border-gray-200 rounded-xl p-3 outline-none focus:border-black transition-all"
+                                    value={details.companyName}
+                                    onChange={e => setDetails({...details, companyName: e.target.value})}
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold uppercase text-gray-500 mb-2">Strategy Depth</label>
+                                <div className="flex bg-gray-100 p-1 rounded-xl gap-1">
+                                    {['EXPRESS', 'STANDARD', 'COMPREHENSIVE'].map(d => (
+                                        <button
+                                            key={d}
+                                            type="button"
+                                            onClick={() => setDetails({...details, auditDepth: d})}
+                                            className={`flex-1 rounded-lg py-2 text-xs font-bold uppercase transition-all ${
+                                                details.auditDepth === d ? 'bg-white shadow-sm' : 'text-gray-500'
+                                            }`}
+                                        >
+                                            {d}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-bold uppercase text-gray-500 mb-2">Current Bottleneck</label>
+                            <textarea
+                                required
+                                placeholder="Where are you leaking leads or losing time?"
+                                className="w-full bg-gray-50 border-2 border-gray-200 rounded-xl p-3 min-h-[100px] outline-none focus:border-black transition-all resize-none"
+                                value={details.currentBottleneck}
+                                onChange={e => setDetails({...details, currentBottleneck: e.target.value})}
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-bold uppercase text-gray-500 mb-2">The Goal</label>
+                            <textarea
+                                required
+                                placeholder="What does market dominance look like for you?"
+                                className="w-full bg-gray-50 border-2 border-gray-200 rounded-xl p-3 min-h-[100px] outline-none focus:border-black transition-all resize-none"
+                                value={details.growthGoal}
+                                onChange={e => setDetails({...details, growthGoal: e.target.value})}
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-bold uppercase text-gray-500 mb-2">Focus Pillar</label>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                {focusOptions.map(opt => (
+                                    <button
+                                        key={opt.id}
+                                        type="button"
+                                        onClick={() => setDetails({...details, strategyFocus: opt.id})}
+                                        className={`p-4 rounded-xl border-2 text-left transition-all ${
+                                            details.strategyFocus === opt.id
+                                                ? 'border-black bg-black text-white'
+                                                : 'border-gray-200 bg-gray-50 hover:border-gray-300'
+                                        }`}
+                                    >
+                                        <div className="font-bold mb-1">{opt.label}</div>
+                                        <div className={`text-xs ${details.strategyFocus === opt.id ? 'text-gray-300' : 'text-gray-500'}`}>
+                                            {opt.desc}
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <button
+                            type="submit"
+                            className="w-full bg-black text-white py-4 rounded-xl font-bold text-lg hover:bg-gray-800 transition-all shadow-lg"
+                        >
+                            Generate Execution Roadmap
+                        </button>
+                    </div>
+                </form>
+            );
+        };
+
+        // Roadmap Viewer Component
+        const RoadmapViewer = ({ roadmap, details, currentPlayingIndex, onStepChange, isGenerating }) => {
+            const [isPlaying, setIsPlaying] = useState(false);
+            const audioContextRef = useRef(null);
+            const sourceRef = useRef(null);
+
+            const stopAudio = () => {
+                if (sourceRef.current) {
+                    sourceRef.current.onended = null;
+                    try { sourceRef.current.stop(); } catch (e) {}
+                    sourceRef.current = null;
+                }
+            };
+
+            const playStep = async (index) => {
+                const step = roadmap.steps[index];
+                if (!step?.audioBuffer) return;
+
+                if (!audioContextRef.current) {
+                    audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
+                }
+
+                stopAudio();
+                const source = audioContextRef.current.createBufferSource();
+                source.buffer = step.audioBuffer;
+                source.connect(audioContextRef.current.destination);
+                sourceRef.current = source;
+
+                source.onended = () => {
+                    if (index + 1 < roadmap.totalSteps) {
+                        onStepChange(index + 1);
+                    } else {
+                        setIsPlaying(false);
+                    }
+                };
+                source.start(0);
+            };
+
+            useEffect(() => {
+                if (isPlaying) {
+                    playStep(currentPlayingIndex);
+                } else {
+                    stopAudio();
+                }
+            }, [currentPlayingIndex, isPlaying]);
+
+            return (
+                <div className="max-w-6xl mx-auto space-y-8">
+                    <div className="bg-black text-white rounded-3xl p-8 shadow-2xl">
+                        <div className="mb-4">
+                            <span className="px-3 py-1 bg-white/10 rounded-full text-xs font-bold uppercase">Strategic Briefing</span>
+                        </div>
+                        <h1 className="text-3xl font-serif font-bold mb-4">
+                            Transformation Roadmap for {details.companyName}
+                        </h1>
+                        <p className="text-lg text-gray-300 mb-6">{roadmap.executiveSummary}</p>
+
+                        <button
+                            onClick={() => setIsPlaying(!isPlaying)}
+                            className="bg-white text-black h-12 w-12 rounded-full flex items-center justify-center hover:scale-105 transition-all"
+                        >
+                            {isPlaying ? '⏸' : '▶'}
+                        </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {roadmap.steps.map((step, idx) => {
+                            const isCurrent = idx === currentPlayingIndex;
+                            const isPast = idx < currentPlayingIndex;
+
+                            return (
+                                <div
+                                    key={idx}
+                                    onClick={() => onStepChange(idx)}
+                                    className={`p-6 rounded-2xl border-2 cursor-pointer transition-all ${
+                                        isCurrent
+                                            ? 'bg-white border-black shadow-xl'
+                                            : isPast
+                                            ? 'bg-gray-50 border-gray-200 opacity-60'
+                                            : 'bg-white border-gray-200 hover:border-gray-300'
+                                    }`}
+                                >
+                                    <div className="flex items-center justify-between mb-4">
+                                        <div className={`h-8 w-8 rounded-lg flex items-center justify-center font-bold text-sm ${
+                                            isCurrent ? 'bg-black text-white' : 'bg-gray-100 text-gray-500'
+                                        }`}>
+                                            0{step.index}
+                                        </div>
+                                        {isPast && <span>✓</span>}
+                                        {isCurrent && isPlaying && <span className="animate-pulse">🔊</span>}
+                                    </div>
+                                    <h4 className={`text-lg font-serif font-bold mb-2 ${isCurrent ? 'text-black' : 'text-gray-500'}`}>
+                                        {step.title}
+                                    </h4>
+                                    {isCurrent && (
+                                        <p className="text-sm text-gray-600 border-t border-gray-200 pt-3 mt-3">
+                                            {step.text}
+                                        </p>
+                                    )}
+                                </div>
+                            );
+                        })}
+
+                        {isGenerating && (
+                            <div className="p-6 rounded-2xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center">
+                                <div className="animate-spin text-2xl mb-2">⏳</div>
+                                <div className="text-xs text-gray-500 uppercase">Generating Phase {roadmap.steps.length + 1}</div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        // Main App Component
+        const App = () => {
+            const [appState, setAppState] = useState('PLANNING');
+            const [details, setDetails] = useState(null);
+            const [roadmap, setRoadmap] = useState(null);
+            const [currentPlayingIndex, setCurrentPlayingIndex] = useState(0);
+            const [errorMessage, setErrorMessage] = useState(null);
+
+            const startAnalysis = async (input) => {
+                setDetails(input);
+                setAppState('GENERATING_ROADMAP');
+                setErrorMessage(null);
+
+                try {
+                    const { executiveSummary, stepOutlines } = await generateGrowthRoadmap(input);
+
+                    const first = stepOutlines[0];
+                    const text = await generateStepContent(input, 1, stepOutlines.length, first.title, first.goal, "");
+                    const ctx = getAudioContext();
+                    const audio = await generateBriefingAudio(text, ctx);
+
+                    const initialRoadmap = {
+                        totalSteps: stepOutlines.length,
+                        executiveSummary,
+                        steps: [{ index: 1, title: first.title, text, audioBuffer: audio }]
+                    };
+
+                    setRoadmap(initialRoadmap);
+                    setAppState('READY_TO_VIEW');
+
+                    fillRoadmap(input, initialRoadmap, stepOutlines);
+                } catch (e) {
+                    console.error('Error generating roadmap:', e);
+                    setErrorMessage(`Failed to generate roadmap: ${e.message}. Please check your connection and try again.`);
+                    setAppState('PLANNING');
+                }
+            };
+
+            const fillRoadmap = async (input, initial, outlines) => {
+                let currentRoadmap = initial;
+                for (let i = 1; i < outlines.length; i++) {
+                    const beat = outlines[i];
+                    const prevText = currentRoadmap.steps.map(s => s.text).join(" ");
+                    const text = await generateStepContent(input, i + 1, outlines.length, beat.title, beat.goal, prevText);
+
+                    const ctx = getAudioContext();
+                    const audio = await generateBriefingAudio(text, ctx);
+
+                    currentRoadmap = {
+                        ...currentRoadmap,
+                        steps: [...currentRoadmap.steps, { index: i + 1, title: beat.title, text, audioBuffer: audio }]
+                    };
+                    setRoadmap(currentRoadmap);
+                }
+            };
+
+            return (
+                <div className="min-h-screen bg-stone-50 p-6">
+                    {errorMessage && (
+                        <div className="mb-4 bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-2">
+                            <span className="text-red-600">⚠️</span>
+                            <div className="flex-1">
+                                <p className="text-sm text-red-700">{errorMessage}</p>
+                            </div>
+                            <button onClick={() => setErrorMessage(null)} className="text-red-600">✕</button>
+                        </div>
+                    )}
+
+                    {appState === 'PLANNING' && <StrategyPlanner onPlanCreated={startAnalysis} appState={appState} />}
+
+                    {appState === 'GENERATING_ROADMAP' && (
+                        <div className="flex items-center justify-center min-h-[50vh]">
+                            <div className="animate-spin text-6xl">⏳</div>
+                        </div>
+                    )}
+
+                    {appState === 'READY_TO_VIEW' && roadmap && details && (
+                        <RoadmapViewer
+                            roadmap={roadmap}
+                            details={details}
+                            currentPlayingIndex={currentPlayingIndex}
+                            onStepChange={setCurrentPlayingIndex}
+                            isGenerating={roadmap.steps.length < roadmap.totalSteps}
+                        />
+                    )}
+                </div>
+            );
+        };
+
+        // Render App
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
