@@ -1,0 +1,43 @@
+{
+  "objective": "Define optional, safe provider probes so trusted workers can test whether configured API keys appear to work without exposing raw secret values.",
+  "probes": [
+    {
+      "secretName": "OPENAI_API_KEY",
+      "type": "httpBearer",
+      "method": "GET",
+      "url": "https://api.openai.com/v1/models",
+      "successStatus": [200],
+      "plainEnglish": "Checks whether OpenAI accepts the API key.",
+      "ifFail": "OpenAI-powered chat, summaries, or memory features may not work."
+    },
+    {
+      "secretName": "GEMINI_API_KEY",
+      "type": "httpQuery",
+      "method": "GET",
+      "url": "https://generativelanguage.googleapis.com/v1beta/models",
+      "queryParamName": "key",
+      "successStatus": [200],
+      "plainEnglish": "Checks whether Gemini accepts the API key.",
+      "ifFail": "Gemini-powered chat, voice, or analysis features may not work."
+    },
+    {
+      "secretName": "JWT_SECRET",
+      "type": "manualOnly",
+      "plainEnglish": "JWT secrets cannot be externally validated against a provider. They should be validated through local auth flows.",
+      "ifFail": "Login and session handling may fail or be insecure if the secret is weak or missing."
+    },
+    {
+      "secretName": "DATABASE_URL",
+      "type": "manualOnly",
+      "plainEnglish": "Database credentials should be validated through a connection check in the app backend, not a generic public probe.",
+      "ifFail": "Features that need saved data may fail."
+    },
+    {
+      "secretName": "WHATSAPP_VERIFY_TOKEN",
+      "type": "manualOnly",
+      "plainEnglish": "Webhook verification tokens should be validated through the integration flow, not a generic external probe.",
+      "ifFail": "Webhook verification may fail."
+    }
+  ],
+  "conclusion": "Trusted workers should only run external probes when they can do so without revealing raw secrets, and they should explain outcomes in plain language with choices and consequences."
+}
