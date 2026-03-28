@@ -1,0 +1,18 @@
+{
+  "objective": "Let trusted workers summarize what is pending, what is being worked on, what is done, and whether duplicate items exist in the GitHub Project.",
+  "projectUrl": "https://github.com/orgs/espacios-me/projects/PROJECT_NUMBER",
+  "statusGroups": {
+    "pending": ["Backlog", "Ready", "Updated"],
+    "working": ["In Progress", "Review", "Blocked"],
+    "done": ["Deployed", "Verified", "Done"]
+  },
+  "email": {
+    "preferredFrom": "admin@espacios.me",
+    "subjectPrefix": "[Atom Ops]"
+  },
+  "dedupe": {
+    "preferField": "Page",
+    "fallback": "title"
+  },
+  "conclusion": "Trusted workers should summarize project state in plain language and warn when duplicate work items may confuse the team."
+}
