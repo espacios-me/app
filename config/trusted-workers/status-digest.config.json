@@ -1,0 +1,20 @@
+{
+  "objective": "Let trusted workers summarize what is pending, what is being worked on now, what is done, and whether duplicate project items exist.",
+  "projectFieldNames": {
+    "status": "Status",
+    "page": "Page",
+    "area": "Area",
+    "lastUpdated": "Last Updated",
+    "repository": "Repository"
+  },
+  "statusBuckets": {
+    "pending": ["Backlog", "Ready", "Updated"],
+    "working": ["In Progress", "Blocked", "Review"],
+    "done": ["Deployed", "Verified", "Done"]
+  },
+  "email": {
+    "preferredFrom": "admin@espacios.me",
+    "subjectPrefix": "[Atom Ops]"
+  },
+  "conclusion": "Trusted workers should produce a plain-English digest first, then optionally send it by email if a provider key and recipient are configured."
+}
