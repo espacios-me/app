@@ -1,0 +1,474 @@
+name: Repo Janitor + Page Project Sync
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: repo-janitor-project-sync-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  janitor-and-sync:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Compute changed files
+        id: changed
+        shell: bash
+        run: |
+          BEFORE="${{ github.event.before }}"
+          AFTER="${{ github.sha }}"
+
+          if [ -z "$BEFORE" ] || [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then
+            git ls-files > .changed-files.txt
+          else
+            git diff --name-only "$BEFORE" "$AFTER" > .changed-files.txt
+          fi
+
+          COUNT="$(grep -c . .changed-files.txt || true)"
+          echo "count=$COUNT" >> "$GITHUB_OUTPUT"
+
+          echo "Changed files:"
+          cat .changed-files.txt || true
+
+      - name: Remove exact duplicate files in configured safe roots
+        id: dedupe
+        uses: actions/github-script@v8
+        with:
+          result-encoding: string
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const crypto = require('crypto');
+
+            const workspace = process.env.GITHUB_WORKSPACE;
+            const cfgPath = path.join(workspace, '.github', 'page-map.json');
+            const cfg = JSON.parse(fs.readFileSync(cfgPath, 'utf8'));
+            const dedupe = cfg.dedupe || {};
+
+            if (!dedupe.enabled) {
+              core.setOutput('removed_count', '0');
+              core.setOutput('removed_json', '[]');
+              return 'dedupe disabled';
+            }
+
+            const ignoreExt = new Set((dedupe.ignoreExtensions || []).map(x => x.toLowerCase()));
+            const keepCanonical = new Set((dedupe.keepCanonical || []).map(x => x.replace(/\\/g, '/')));
+            const roots = (dedupe.roots || []).map(x => x.replace(/\\/g, '/'));
+            const files = [];
+
+            function walk(relDir) {
+              const absDir = path.join(workspace, relDir);
+              if (!fs.existsSync(absDir)) return;
+
+              for (const entry of fs.readdirSync(absDir)) {
+                const abs = path.join(absDir, entry);
+                const rel = path.relative(workspace, abs).replace(/\\/g, '/');
+                const stat = fs.statSync(abs);
+
+                if (stat.isDirectory()) {
+                  walk(rel);
+                } else if (stat.isFile()) {
+                  const ext = path.extname(rel).toLowerCase();
+                  if (!ignoreExt.has(ext)) files.push(rel);
+                }
+              }
+            }
+
+            for (const root of roots) walk(root);
+
+            const byHash = new Map();
+
+            for (const rel of files) {
+              const abs = path.join(workspace, rel);
+              const hash = crypto.createHash('sha256').update(fs.readFileSync(abs)).digest('hex');
+              if (!byHash.has(hash)) byHash.set(hash, []);
+              byHash.get(hash).push(rel);
+            }
+
+            function chooseKeeper(group) {
+              const explicit = group.find(p => keepCanonical.has(p));
+              if (explicit) return explicit;
+              return [...group].sort((a, b) => a.length - b.length || a.localeCompare(b))[0];
+            }
+
+            const removed = [];
+            const duplicateGroups = [];
+
+            for (const [, group] of byHash.entries()) {
+              if (group.length < 2) continue;
+
+              const keeper = chooseKeeper(group);
+              const toRemove = group.filter(p => p !== keeper);
+
+              if (toRemove.length) {
+                duplicateGroups.push({ keeper, removed: toRemove });
+                for (const rel of toRemove) {
+                  const abs = path.join(workspace, rel);
+                  if (fs.existsSync(abs)) {
+                    fs.unlinkSync(abs);
+                    removed.push(rel);
+                  }
+                }
+              }
+            }
+
+            core.setOutput('removed_count', String(removed.length));
+            core.setOutput('removed_json', JSON.stringify(removed));
+
+            core.summary
+              .addHeading('Duplicate file cleanup')
+              .addRaw(`Removed ${removed.length} exact duplicate file(s).`, true)
+              .addCodeBlock(JSON.stringify(duplicateGroups, null, 2), 'json')
+              .write();
+
+            return JSON.stringify({ removed, duplicateGroups });
+
+      - name: Commit duplicate cleanup
+        if: steps.dedupe.outputs.removed_count != '0'
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add -A
+
+          if git diff --cached --quiet; then
+            echo "No duplicate cleanup changes to commit."
+            exit 0
+          fi
+
+          git commit -m "chore(janitor): remove exact duplicate files [skip ci]"
+          git push
+
+      - name: Sync changed pages into Issues + Projects
+        if: steps.changed.outputs.count != '0'
+        uses: actions/github-script@v8
+        env:
+          CHANGED_FILES_PATH: .changed-files.txt
+        with:
+          github-token: ${{ secrets.PROJECTS_TOKEN }}
+          retries: 3
+          result-encoding: string
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const workspace = process.env.GITHUB_WORKSPACE;
+            const cfg = JSON.parse(fs.readFileSync(path.join(workspace, '.github', 'page-map.json'), 'utf8'));
+            const changed = fs.readFileSync(path.join(workspace, process.env.CHANGED_FILES_PATH), 'utf8')
+              .split('\n')
+              .map(x => x.trim())
+              .filter(Boolean);
+
+            if (!changed.length) {
+              core.notice('No changed files.');
+              return 'no changes';
+            }
+
+            const defaults = cfg.projectDefaults || {};
+            const projectOwner = defaults.owner || owner;
+            const projectCache = new Map();
+
+            function matchesPage(page, file) {
+              const prefixes = page.prefixes || [];
+              const exact = page.exact || [];
+              return exact.includes(file) || prefixes.some(prefix => file.startsWith(prefix));
+            }
+
+            async function getProjectMeta(projectNumber) {
+              const cacheKey = `${projectOwner}:${projectNumber}`;
+              if (projectCache.has(cacheKey)) return projectCache.get(cacheKey);
+
+              const data = await github.graphql(
+                `
+                query($owner: String!, $number: Int!) {
+                  organization(login: $owner) {
+                    projectV2(number: $number) {
+                      id
+                      fields(first: 50) {
+                        nodes {
+                          ... on ProjectV2FieldCommon {
+                            id
+                            name
+                          }
+                          ... on ProjectV2SingleSelectField {
+                            id
+                            name
+                            options {
+                              id
+                              name
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+                `,
+                {
+                  owner: projectOwner,
+                  number: Number(projectNumber)
+                }
+              );
+
+              const project = data.organization.projectV2;
+              if (!project) {
+                throw new Error(`Project ${projectNumber} not found under ${projectOwner}`);
+              }
+
+              const fields = {};
+              const selectOptions = {};
+
+              for (const node of project.fields.nodes) {
+                if (!node || !node.name) continue;
+                fields[node.name] = node.id;
+                if (node.options) {
+                  selectOptions[node.name] = Object.fromEntries(
+                    node.options.map(opt => [opt.name, opt.id])
+                  );
+                }
+              }
+
+              const meta = {
+                id: project.id,
+                fields,
+                selectOptions
+              };
+
+              projectCache.set(cacheKey, meta);
+              return meta;
+            }
+
+            async function setTextField(projectId, itemId, fieldId, text) {
+              if (!fieldId || !text) return;
+              await github.graphql(
+                `
+                mutation($project: ID!, $item: ID!, $field: ID!, $text: String!) {
+                  updateProjectV2ItemFieldValue(input: {
+                    projectId: $project,
+                    itemId: $item,
+                    fieldId: $field,
+                    value: { text: $text }
+                  }) {
+                    projectV2Item { id }
+                  }
+                }
+                `,
+                { project: projectId, item: itemId, field: fieldId, text }
+              );
+            }
+
+            async function setDateField(projectId, itemId, fieldId, date) {
+              if (!fieldId || !date) return;
+              await github.graphql(
+                `
+                mutation($project: ID!, $item: ID!, $field: ID!, $date: Date!) {
+                  updateProjectV2ItemFieldValue(input: {
+                    projectId: $project,
+                    itemId: $item,
+                    fieldId: $field,
+                    value: { date: $date }
+                  }) {
+                    projectV2Item { id }
+                  }
+                }
+                `,
+                { project: projectId, item: itemId, field: fieldId, date }
+              );
+            }
+
+            async function setSingleSelectField(projectId, itemId, fieldId, optionId) {
+              if (!fieldId || !optionId) return;
+              await github.graphql(
+                `
+                mutation($project: ID!, $item: ID!, $field: ID!, $option: String!) {
+                  updateProjectV2ItemFieldValue(input: {
+                    projectId: $project,
+                    itemId: $item,
+                    fieldId: $field,
+                    value: { singleSelectOptionId: $option }
+                  }) {
+                    projectV2Item { id }
+                  }
+                }
+                `,
+                { project: projectId, item: itemId, field: fieldId, option: optionId }
+              );
+            }
+
+            async function safeCreateIssue(payload) {
+              try {
+                return (await github.rest.issues.create(payload)).data;
+              } catch (err) {
+                const retryPayload = { ...payload };
+                delete retryPayload.assignees;
+                return (await github.rest.issues.create(retryPayload)).data;
+              }
+            }
+
+            async function safeUpdateIssue(payload) {
+              try {
+                return (await github.rest.issues.update(payload)).data;
+              } catch (err) {
+                const retryPayload = { ...payload };
+                delete retryPayload.assignees;
+                return (await github.rest.issues.update(retryPayload)).data;
+              }
+            }
+
+            const openIssues = await github.paginate(github.rest.issues.listForRepo, {
+              owner,
+              repo,
+              state: 'open',
+              per_page: 100
+            });
+
+            const touchedPages = cfg.pages.filter(page => changed.some(file => matchesPage(page, file)));
+
+            if (!touchedPages.length) {
+              core.notice('Changed files did not match any configured page.');
+              return 'no mapped pages changed';
+            }
+
+            const today = new Date().toISOString().slice(0, 10);
+            const summaries = [];
+
+            for (const page of touchedPages) {
+              const issueTitle = `[page-sync] ${page.route}`;
+              const pageFiles = changed.filter(file => matchesPage(page, file));
+              let issue = openIssues.find(i => i.title === issueTitle && !i.pull_request);
+
+              let projectItemId = '';
+              if (issue?.body) {
+                const match = issue.body.match(/<!--\s*project-item-id:\s*([^\s]+)\s*-->/i);
+                if (match) projectItemId = match[1];
+              }
+
+              const bodyBase = [
+                `# Page Sync`,
+                ``,
+                `- Route: \`${page.route}\``,
+                `- Area: \`${page.area}\``,
+                `- Project number: \`${page.projectNumber}\``,
+                `- Repository: \`${owner}/${repo}\``,
+                `- Last commit: \`${context.sha}\``,
+                `- Last updated: \`${today}\``,
+                ``,
+                `## Changed files`,
+                ...pageFiles.map(file => `- \`${file}\``),
+                ``,
+                `<!-- page-route:${page.route} -->`,
+                projectItemId ? `<!-- project-item-id:${projectItemId} -->` : `<!-- project-item-id: -->`
+              ].join('\n');
+
+              if (!issue) {
+                issue = await safeCreateIssue({
+                  owner,
+                  repo,
+                  title: issueTitle,
+                  body: bodyBase,
+                  assignees: page.assignees || []
+                });
+                openIssues.push(issue);
+              } else {
+                issue = await safeUpdateIssue({
+                  owner,
+                  repo,
+                  issue_number: issue.number,
+                  title: issueTitle,
+                  body: bodyBase,
+                  assignees: page.assignees || []
+                });
+              }
+
+              const project = await getProjectMeta(page.projectNumber);
+
+              if (!projectItemId) {
+                const added = await github.graphql(
+                  `
+                  mutation($project: ID!, $content: ID!) {
+                    addProjectV2ItemById(input: {
+                      projectId: $project,
+                      contentId: $content
+                    }) {
+                      item { id }
+                    }
+                  }
+                  `,
+                  {
+                    project: project.id,
+                    content: issue.node_id
+                  }
+                );
+
+                projectItemId = added.addProjectV2ItemById.item.id;
+
+                const newBody = bodyBase.replace(
+                  '<!-- project-item-id: -->',
+                  `<!-- project-item-id:${projectItemId} -->`
+                );
+
+                issue = await safeUpdateIssue({
+                  owner,
+                  repo,
+                  issue_number: issue.number,
+                  body: newBody
+                });
+              }
+
+              const statusFieldName = page.statusField || defaults.statusField;
+              const pageFieldName = page.pageField || defaults.pageField;
+              const areaFieldName = page.areaField || defaults.areaField;
+              const lastUpdatedFieldName = page.lastUpdatedField || defaults.lastUpdatedField;
+              const statusValue = page.statusValueOnPush || defaults.statusValueOnPush;
+
+              if (statusFieldName && statusValue) {
+                const statusFieldId = project.fields[statusFieldName];
+                const statusOptionId = project.selectOptions[statusFieldName]?.[statusValue];
+                await setSingleSelectField(project.id, projectItemId, statusFieldId, statusOptionId);
+              }
+
+              if (pageFieldName) {
+                await setTextField(project.id, projectItemId, project.fields[pageFieldName], page.route);
+              }
+
+              if (areaFieldName) {
+                await setTextField(project.id, projectItemId, project.fields[areaFieldName], page.area);
+              }
+
+              if (lastUpdatedFieldName) {
+                await setDateField(project.id, projectItemId, project.fields[lastUpdatedFieldName], today);
+              }
+
+              summaries.push({
+                route: page.route,
+                issue: issue.number,
+                project: page.projectNumber,
+                assignees: page.assignees || [],
+                files: pageFiles
+              });
+            }
+
+            core.summary
+              .addHeading('Page → Project sync')
+              .addCodeBlock(JSON.stringify(summaries, null, 2), 'json')
+              .write();
+
+            return JSON.stringify(summaries);
