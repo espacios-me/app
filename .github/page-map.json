@@ -1,0 +1,113 @@
+{
+  "projectDefaults": {
+    "owner": "espacios-me",
+    "statusField": "Status",
+    "pageField": "Page",
+    "areaField": "Area",
+    "lastUpdatedField": "Last Updated",
+    "statusValueOnPush": "Updated"
+  },
+  "dedupe": {
+    "enabled": true,
+    "roots": [
+      "client/src/pages",
+      "client/src/components",
+      "public"
+    ],
+    "ignoreExtensions": [
+      ".png",
+      ".jpg",
+      ".jpeg",
+      ".gif",
+      ".webp",
+      ".svg",
+      ".ico",
+      ".woff",
+      ".woff2",
+      ".mp3",
+      ".mp4",
+      ".pdf",
+      ".zip"
+    ],
+    "keepCanonical": [
+      "client/src/pages/HomePage.tsx",
+      "client/src/pages/AtomPage.tsx",
+      "client/src/pages/LoginPage.tsx",
+      "client/src/pages/SignupPage.tsx"
+    ]
+  },
+  "pages": [
+    {
+      "route": "/",
+      "area": "site",
+      "projectNumber": 1,
+      "assignees": ["keifferjapeth"],
+      "prefixes": [
+        "client/src/pages/Home",
+        "client/src/components/marketing/",
+        "client/src/components/hero/"
+      ]
+    },
+    {
+      "route": "/atom",
+      "area": "atom",
+      "projectNumber": 2,
+      "assignees": ["keifferjapeth"],
+      "prefixes": [
+        "client/src/pages/Atom",
+        "client/src/components/orb/",
+        "client/src/components/atom/"
+      ]
+    },
+    {
+      "route": "/atom/login",
+      "area": "auth",
+      "projectNumber": 2,
+      "assignees": ["keifferjapeth"],
+      "prefixes": [
+        "client/src/pages/Login",
+        "client/src/components/auth/"
+      ]
+    },
+    {
+      "route": "/atom/signup",
+      "area": "auth",
+      "projectNumber": 2,
+      "assignees": ["keifferjapeth"],
+      "prefixes": [
+        "client/src/pages/Signup",
+        "client/src/components/auth/"
+      ]
+    },
+    {
+      "route": "/atom/dashboard",
+      "area": "dashboard",
+      "projectNumber": 2,
+      "assignees": ["keifferjapeth"],
+      "prefixes": [
+        "client/src/pages/Dashboard",
+        "client/src/components/dashboard/"
+      ]
+    },
+    {
+      "route": "/atom/integrations",
+      "area": "integrations",
+      "projectNumber": 2,
+      "assignees": ["keifferjapeth"],
+      "prefixes": [
+        "client/src/pages/Integrations",
+        "client/src/components/integrations/"
+      ]
+    },
+    {
+      "route": "/atom/mail",
+      "area": "mail",
+      "projectNumber": 2,
+      "assignees": ["keifferjapeth"],
+      "prefixes": [
+        "client/src/pages/Mail",
+        "client/src/components/mail/"
+      ]
+    }
+  ]
+}
