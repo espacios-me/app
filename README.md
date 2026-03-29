@@ -2,201 +2,79 @@
 
 > **Design System:** This repository follows the [espacios.me](https://espacios.me) high-contrast minimalist design system.
 
-# Atom
+# Espacios.me
 
-**Your memory layer above everything.**
+**Domain:** espacios.me  
+**Hosting:** Cloudflare Pages (SSR + static assets)  
+**Repo:** https://github.com/espacios-me/web  
+**Status:** Live (main branch deploys automatically)
 
-Atom is a conversational second brain for your messages, calendars, files, reminders, goals, and personal context.
+### Overview
+Espacios.me is a Dubai-based marketing and lead-generation agency specializing in high-intent client acquisition for real estate, developers, and similar high-volume businesses. We harness AI to study market behavior—buyer emotions, reactions, timing—and build smarter campaigns that influence decisions without hype.
 
-It is built for one simple outcome: **you should never lose important context again**.
+We don't just run ads. We experiment, analyze psychology, and optimize every touchpoint: what to show, how to make clients feel, so leads convert faster and close higher.
 
-Talk to Atom the way you naturally think.
-Drop a message.
-Forward a file.
-Save a thought.
-Set a reminder.
-Ask what matters.
-Atom turns scattered input into memory, structure, and action.
+### Core Functionalities (Main Site: espacios.me)
+- **Multi-channel lead generation** — Meta, Google, Instagram, WhatsApp, organic flows.  
+- **Market behavior analysis** — Track buyer psychology (budget anxiety, timeline pressure, lifestyle desires).  
+- **AI-powered ad optimization** — A/B tests, real-time tweaks to visuals/copy for emotional + logical impact.  
+- **Targeted influence** — Craft messages that spark trust, urgency, excitement—naturally guiding decisions.  
+- **Lead nurturing & routing** — Qualify inbound fast, nurture until ready, hand off to sales teams.  
+- **Privacy-first** — All client data, visuals, strategies stay 100% under your control—no leaks.  
 
-## What Atom is
+### Product: Atom (Landing Page: espacios.me/atom)
+Atom is our standalone AI memory tool—think "second brain" for WhatsApp/Instagram chats.  
 
-Atom is an AI memory and organization system that helps you:
+**Key Features:**  
+- Deep conversation memory — Remembers every detail across sessions (goals, budget, hesitations).  
+- Smart reminders & nudges — Triggers follow-ups based on past behavior.  
+- Context-aware responses — Handles natural language, no generic scripts.  
+- Privacy shield — Only triggers **your** content/links; never generates or exposes anything.  
+- Waitlist-only — Early access for select users; integrates seamlessly with Espacios campaigns.  
 
-- remember what matters
-- organize what is scattered
-- capture things instantly through conversation
-- track goals, reminders, and commitments
-- turn raw input into structured context
-- resurface the right information at the right moment
+### Tech Stack
+- **Frontend:** React + Vite + Tailwind CSS (SSR for speed)  
+- **Hosting:** Cloudflare Pages (auto-deploys on push, redirects for clean URLs)  
+- **Build:** `npm run build` → outputs to `/dist`  
+- **Redirects:** Cloudflare `_redirects` file for legacy paths  
+- **Env vars:** Secrets like `vite_app_id` managed in dashboard  
 
-Atom is not meant to feel like another dashboard you need to maintain.
-It is meant to feel like a layer that sits above everything else.
+### Deployment
+1. Push to `main` — Cloudflare auto-builds.  
+2. Check status: https://dash.cloudflare.com → Workers & Pages → your project → Deployments.  
+3. Custom domain: Add espacios.me in Cloudflare DNS.  
 
-## The idea
+### Get Started
+- Main site: (https://espacios.me)  
+- Atom landing: (https://espacios.me/atom)  
+- Contact: hello@espacios.me  
 
-Most people live across too many surfaces:
+-logo img_3231.jpg
 
-- chat apps
-- email
-- notes
-- files
-- calendars
-- project tools
-- random screenshots
-- thoughts captured too late or never at all
+Built by Keiffer Japeth. 
 
-Atom is being built to unify that fragmented life into one memory system.
+## Headquarters Monorepo Transition (Staged)
 
-Instead of forcing users to manually organize everything, Atom is designed to:
+This repository now includes monorepo landing zones under `apps/`, `services/`, and `labs/` for controlled, non-destructive imports of Espacios satellite repositories. Live deployments remain federated until import and build parity are validated.
 
-1. capture through chat
-2. understand intent
-3. store useful memory
-4. connect to outside tools
-5. bring context back when it matters
+## Agentic Workflow Enablement
 
-## Core experience
+The repository now includes a Codex Agent persona (`.github/codex-persona.md`) and an autonomous GitHub Actions loop (`.github/workflows/codex-autonomous-agent.yml`) that can:
+- ingest prompt/context from PRs, pushes, or manual dispatch,
+- generate and validate an execution plan (`action_plan.sh`),
+- execute safe repo/cloud operations with GitHub + Cloudflare credentials,
+- self-report failures with downloadable debug artifacts.
+## Digital Office Governance Overlay
+This repository acts as **headquarters** (`espacios-me/-`) in the Espacios digital office model.
 
-Atom starts with a strong personal assistant foundation that already exists in this repo:
+### Headquarters responsibilities in this repo
+- Root org governance and department directory
+- Cross-repo orchestration policy
+- Top-level routing and executive switchboard surfaces
+- Service registry and automation guardrails
 
-- conversational chat
-- memories
-- goals
-- reminders
-- settings and secure API key storage
-- mobile + web app shell
-- backend AI integration
-- WhatsApp webhook groundwork
+### Governance references
+- Constitution: `docs/office-constitution.md`
+- Overlay routes exposed from headquarters: `/bot`, `/mcp`, `/admin`
 
-This is the base layer.
-
-The bigger product is the memory layer above all your tools.
-
-## What Atom becomes
-
-Atom is being built into a system that can:
-
-- create reminders in natural language
-- store preferences, facts, people, projects, and notes as memory
-- track goals and ongoing commitments
-- turn chat into actions
-- ingest context from WhatsApp, Gmail, Google Drive, Google Calendar, Linear, Vercel, and other sources
-- generate briefings, summaries, and proactive resurfacing
-- build a richer model of user context over time
-- power a dashboard for memory search, profile context, relationships, goals, and insights
-
-## How Atom works
-
-### 1. Conversational capture
-Atom starts with natural language.
-Users should be able to say what they mean instead of filling out rigid forms.
-
-### 2. Structured memory
-Atom turns conversation and future external inputs into structured memory objects like reminders, goals, notes, and context.
-
-### 3. Long-term context
-Atom is designed to accumulate useful user context over time so it can become more relevant, more personal, and more helpful.
-
-### 4. Cross-source ingestion
-Atom’s roadmap extends beyond the app itself into email, messaging, files, calendars, and work tools.
-
-### 5. Resurfacing
-Atom is not just a place to store information.
-It is being built to bring the right information back at the right moment.
-
-### 6. Review and control
-Fast capture happens through conversation.
-Deeper review happens through a richer dashboard and future control surfaces.
-
-## Why this repo matters
-
-This repository is the foundation of Atom.
-
-Today it already contains:
-
-- an Expo / React Native app
-- chat, memories, goals, and reminders
-- local persistence and settings
-- an Express + tRPC backend
-- testing and deployment tooling
-- the first backend steps for WhatsApp-based interaction
-
-The roadmap expands this into a full second-brain platform with ingestion, analysis, dashboards, native surfaces, monitoring, security, and launch readiness.
-
-## Tech stack
-
-### App
-- Expo
-- React Native
-- TypeScript
-- expo-router
-- AsyncStorage
-- SecureStore
-
-### Backend
-- Node.js
-- Express
-- tRPC
-- Zod
-- Drizzle ORM
-- MySQL
-
-### Tooling
-- pnpm
-- Vitest
-- TypeScript
-- esbuild
-- Wrangler
-
-## Repo structure
-
-```text
-app/                App routes and screens
-components/         UI components
-contexts/           App state and data providers
-server/             API server, routers, integrations
-scripts/            Utility scripts
-tests/              Test suite
-assets/             Images, icons, branding
-```
-
-## Getting started
-
-### Install
-
-```bash
-pnpm install
-```
-
-### Run locally
-
-```bash
-pnpm dev
-```
-
-### Useful scripts
-
-```bash
-pnpm test
-pnpm lint
-pnpm check
-pnpm build
-pnpm preview
-pnpm deploy
-```
-
-## Positioning
-
-**Atom is your conversational second brain.**
-
-A memory layer above everything.
-A system that remembers, organizes, and acts with context.
-
-## Status
-
-Atom already has a working product foundation in this repository.
-The broader cross-channel memory platform is actively being built out.
-
----
-
-Built for a future where memory, context, and action live in one place.
+> Non-destructive rule: existing pages/surfaces are preserved and re-routed via governance overlays rather than removed.

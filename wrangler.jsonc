@@ -1,14 +1,22 @@
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "atom",
-  "compatibility_date": "2025-09-27",
-  "observability": {
-    "enabled": true
-  },
+  // espacios.me — Cloudflare Worker
+  "name": "espacios",
+  "main": "src/index.ts",
+  "account_id": "b1b843ec85bc39a3a4d370ba4f84f17a",
+  "compatibility_date": "2025-03-07",
+  "compatibility_flags": ["nodejs_compat"],
+  // Serve all HTML files from the public/ directory
   "assets": {
-    "directory": "dist"
+    "directory": "./public",
+    "binding": "ASSETS"
   },
-  "compatibility_flags": [
-    "nodejs_compat"
-  ]
+  // Custom domain routing
+  "routes": [
+    { "pattern": "espacios.me/*", "zone_name": "espacios.me" },
+    { "pattern": "www.espacios.me/*", "zone_name": "espacios.me" }
+  ],
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1
+  }
 }
